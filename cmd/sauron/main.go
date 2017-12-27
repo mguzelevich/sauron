@@ -12,39 +12,19 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+
+	"github.com/mguzelevich/sauron"
 )
-
-type stats struct {
-	Requests int `json:"requests"`
-	Errors   int `json:"errors"`
-}
-
-type location struct {
-	Lat       string `json:"lat"`                 // lat=%LAT
-	Lon       string `json:"lon"`                 // lon=%LON
-	Sat       string `json:"sat,omitempty"`       // sat=%SAT
-	Desc      string `json:"desc,omitempty"`      // desc=%DESC
-	Alt       string `json:"alt,omitempty"`       // alt=%ALT
-	Acc       string `json:"acc,omitempty"`       // acc=%ACC
-	Dir       string `json:"dir,omitempty"`       // dir=%DIR
-	Prov      string `json:"prov,omitempty"`      // prov=%PROV
-	Spd       string `json:"spd,omitempty"`       // spd=%SPD
-	Time      string `json:"time,omitempty"`      // time=%TIME
-	Battery   string `json:"battery,omitempty"`   // battery=%BATT
-	AndroidId string `json:"androidId,omitempty"` // androidId=%AID
-	Serial    string `json:"serial,omitempty"`    // serial=%SER
-	Activity  string `json:"activity,omitempty"`  // activity=%ACT
-	Epoch     string `json:"epoch,omitempty"`     // epoch=%TIMESTAMP"
-}
 
 var (
 	static bool
 	host   string
 	port   int
 
-	locChan chan location
+	locChan chan *sauron.Location
 
-	statistic stats
+	statistic sauron.Stats
+	storage   *sauron.Storage
 )
 
 func init() {
@@ -95,12 +75,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func locLoop() {
 	fmt.Fprintf(os.Stderr, "location loop started\n")
 	for loc := range locChan {
-		if out, err := json.Marshal(loc); err != nil {
-			// http.Error(w, err.Error(), http.StatusInternalServerError)
-		} else {
-			fmt.Fprintf(os.Stderr, "location: %s\n", string(out))
-			// fmt.Fprintf(w, string(out))
-		}
+		storage.Save(loc)
 	}
 }
 
@@ -117,7 +92,7 @@ func logLocationHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		} else {
-			loc := location{
+			loc := &sauron.Location{
 				Lat:       values.Get("lat"),
 				Lon:       values.Get("lon"),
 				Sat:       values.Get("sat"),
@@ -181,7 +156,8 @@ func main() {
 	r.HandleFunc("/gts", handler).Methods("GET", "PUT")
 	http.Handle("/", r)
 
-	locChan = make(chan location)
+	locChan = make(chan *sauron.Location)
+	storage = sauron.NewStorage()
 	go locLoop()
 
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
