@@ -2,112 +2,34 @@ package main
 
 import (
 	//	"log"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
 
 	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/loggers"
 	"github.com/mguzelevich/sauron/ui"
 )
 
 var (
 	debug bool
 
-	host string
-	port int
+	loggerServerAddr string
+	uiServerAddr     string
 
 	locChan chan *sauron.Location
 
-	statistic sauron.Stats
-	storage   *sauron.Storage
+	storage *sauron.Storage
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "debug mode")
 
-	flag.StringVar(&host, "h", "localhost", "host")
-	flag.StringVar(&host, "host", "localhost", "host")
-	flag.IntVar(&port, "p", 8080, "port")
-	flag.IntVar(&port, "port", 8080, "port")
-
-	// flag.BoolVar(&ui, "ui", false, "web ui")
-
-	// flag.StringVar(&host, "h", "localhost", "host")
-	// flag.StringVar(&host, "host", "localhost", "host")
-	// flag.IntVar(&port, "p", 8080, "port")
-	// flag.IntVar(&port, "port", 8080, "port")
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	statistic.Requests++
-
-	fmt.Fprintf(os.Stderr, "url: %s %s %d %v\n", r.Method, r.RequestURI, r.ContentLength, r.Header)
-	w.Header().Set("Content-Type", "application/json")
-
-	if body, err := ioutil.ReadAll(r.Body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else {
-		fmt.Fprintf(os.Stderr, "\tBODY: %v\n", string(body))
-	}
-
-	if out, err := json.Marshal(statistic); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else {
-		fmt.Fprintf(os.Stderr, "out: %s\n", string(out))
-		fmt.Fprintf(w, string(out))
-	}
-}
-
-func locLoop() {
-	fmt.Fprintf(os.Stderr, "location loop started\n")
-	for loc := range locChan {
-		storage.Save(loc)
-	}
-}
-
-func logLocationHandler(w http.ResponseWriter, r *http.Request) {
-	statistic.Requests++
-
-	w.Header().Set("Content-Type", "application/json")
-
-	if body, err := ioutil.ReadAll(r.Body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else {
-		if values, err := url.ParseQuery(string(body)); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			loc := &sauron.Location{
-				Lat:       values.Get("lat"),
-				Lon:       values.Get("lon"),
-				Sat:       values.Get("sat"),
-				Desc:      values.Get("desc"),
-				Alt:       values.Get("alt"),
-				Acc:       values.Get("acc"),
-				Dir:       values.Get("dir"),
-				Prov:      values.Get("prov"),
-				Spd:       values.Get("spd"),
-				Time:      values.Get("time"),
-				Battery:   values.Get("battery"),
-				AndroidId: values.Get("androidId"),
-				Serial:    values.Get("serial"),
-				Activity:  values.Get("activity"),
-				Epoch:     values.Get("epoch"),
-			}
-			w.WriteHeader(http.StatusOK)
-			locChan <- loc
-		}
-	}
+	flag.StringVar(&loggerServerAddr, "logger-addr", "localhost:8080", "logger server address")
+	flag.StringVar(&uiServerAddr, "ui-addr", "localhost:8081", "ui server address")
 }
 
 func walk(r *mux.Router) {
@@ -150,21 +72,12 @@ func walk(r *mux.Router) {
 func main() {
 	flag.Parse()
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", handler).Methods("GET")
-	r.HandleFunc("/log", logLocationHandler).Methods("POST")
-	r.HandleFunc("/gts", handler).Methods("GET", "PUT")
-	ui.Init(r)
-
-	locChan = make(chan *sauron.Location)
-	storage = sauron.NewStorage()
-	go locLoop()
-
-	if debug {
-		walk(r)
-	}
-	go http.ListenAndServe(fmt.Sprintf(":%d", port), r)
-
+	shutdownChan := make(chan bool)
 	doneChan := make(chan bool)
+
+	go loggers.StartServer(loggerServerAddr, shutdownChan)
+	go ui.StartServer(uiServerAddr, shutdownChan)
+
 	<-doneChan
+	close(shutdownChan)
 }
