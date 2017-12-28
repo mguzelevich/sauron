@@ -22,5 +22,9 @@
 
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/GeertJohan/go.rice"
+
+[[constraint]]
   name = "github.com/gorilla/mux"
   version = "1.6.0"

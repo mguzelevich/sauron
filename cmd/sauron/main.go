@@ -14,12 +14,14 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/ui"
 )
 
 var (
-	static bool
-	host   string
-	port   int
+	debug bool
+
+	host string
+	port int
 
 	locChan chan *sauron.Location
 
@@ -28,26 +30,19 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&static, "static", false, "static serve")
+	flag.BoolVar(&debug, "debug", false, "debug mode")
 
 	flag.StringVar(&host, "h", "localhost", "host")
 	flag.StringVar(&host, "host", "localhost", "host")
-
 	flag.IntVar(&port, "p", 8080, "port")
 	flag.IntVar(&port, "port", 8080, "port")
-}
 
-func execute() {
-	if static {
-		init_static("/files/", "/tmp")
-	} else {
-		http.HandleFunc("/", handler)
-	}
-	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
-}
+	// flag.BoolVar(&ui, "ui", false, "web ui")
 
-func init_static(urlPrefix string, root string) {
-	http.Handle(urlPrefix, http.StripPrefix(urlPrefix, http.FileServer(http.Dir(root))))
+	// flag.StringVar(&host, "h", "localhost", "host")
+	// flag.StringVar(&host, "host", "localhost", "host")
+	// flag.IntVar(&port, "p", 8080, "port")
+	// flag.IntVar(&port, "port", 8080, "port")
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -119,30 +114,35 @@ func walk(r *mux.Router) {
 	r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		t, err := route.GetPathTemplate()
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "err: %v\n", err)
+			//return err
 		}
 		qt, err := route.GetQueriesTemplates()
 		if err != nil {
-			return err
+			//fmt.Fprintf(os.Stderr, "err: %v\n", err)
+			//return err
 		}
 		// p will contain regular expression is compatible with regular expression in Perl, Python, and other languages.
 		// for instance the regular expression for path '/articles/{id}' will be '^/articles/(?P<v0>[^/]+)$'
 		p, err := route.GetPathRegexp()
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "err: %v\n", err)
+			//return err
 		}
 		// qr will contain a list of regular expressions with the same semantics as GetPathRegexp,
 		// just applied to the Queries pairs instead, e.g., 'Queries("surname", "{surname}") will return
 		// {"^surname=(?P<v0>.*)$}. Where each combined query pair will have an entry in the list.
 		qr, err := route.GetQueriesRegexp()
 		if err != nil {
-			return err
+			//fmt.Fprintf(os.Stderr, "err: %v\n", err)
+			//return err
 		}
 		m, err := route.GetMethods()
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "err: %v\n", err)
+			//return err
 		}
-		fmt.Println(strings.Join(m, ","), strings.Join(qt, ","), strings.Join(qr, ","), t, p)
+		fmt.Fprintf(os.Stderr, "> m: %v\tqt: %v qr: %v t: %v p: %v\n", strings.Join(m, ","), strings.Join(qt, ","), strings.Join(qr, ","), t, p)
 		return nil
 	})
 }
@@ -154,11 +154,17 @@ func main() {
 	r.HandleFunc("/", handler).Methods("GET")
 	r.HandleFunc("/log", logLocationHandler).Methods("POST")
 	r.HandleFunc("/gts", handler).Methods("GET", "PUT")
-	http.Handle("/", r)
+	ui.Init(r)
 
 	locChan = make(chan *sauron.Location)
 	storage = sauron.NewStorage()
 	go locLoop()
 
-	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	if debug {
+		walk(r)
+	}
+	go http.ListenAndServe(fmt.Sprintf(":%d", port), r)
+
+	doneChan := make(chan bool)
+	<-doneChan
 }
