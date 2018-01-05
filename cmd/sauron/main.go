@@ -10,26 +10,27 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mguzelevich/sauron"
-	"github.com/mguzelevich/sauron/loggers"
+	"github.com/mguzelevich/sauron/loggers/custom"
+	"github.com/mguzelevich/sauron/loggers/opengts"
 	"github.com/mguzelevich/sauron/ui"
 )
 
 var (
 	debug bool
 
-	loggerServerAddr string
-	uiServerAddr     string
+	httpServerAddr string
+	udpServerAddr  string
 
-	locChan chan *sauron.Location
-
-	storage *sauron.Storage
+	uiServerAddr string
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "debug mode")
 
-	flag.StringVar(&loggerServerAddr, "logger-addr", "localhost:8080", "logger server address")
-	flag.StringVar(&uiServerAddr, "ui-addr", "localhost:8081", "ui server address")
+	flag.StringVar(&httpServerAddr, "http", "localhost:8080", "http logger server address")
+	flag.StringVar(&udpServerAddr, "udp", ":8022", "udp logger server address")
+	flag.StringVar(&uiServerAddr, "ui", "localhost:8081", "ui server address")
+
 }
 
 func walk(r *mux.Router) {
@@ -75,7 +76,11 @@ func main() {
 	shutdownChan := make(chan bool)
 	doneChan := make(chan bool)
 
-	go loggers.StartServer(loggerServerAddr, shutdownChan)
+	storage := sauron.NewStorage()
+
+	go custom.StartServer(httpServerAddr, storage, shutdownChan)
+	go opengts.StartUDPServer(udpServerAddr, storage, shutdownChan)
+
 	go ui.StartServer(uiServerAddr, shutdownChan)
 
 	<-doneChan
