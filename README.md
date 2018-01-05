@@ -1,4 +1,4 @@
-# sauron
+# sauron [![GoDoc](https://godoc.org/github.com/mguzelevich/sauron?status.svg)](http://godoc.org/github.com/mguzelevich/sauron) [![Build Status](https://travis-ci.org/mguzelevich/sauron.svg?branch=master)](https://travis-ci.org/mguzelevich/sauron)
 
 Telemetry Tracking Server
 
