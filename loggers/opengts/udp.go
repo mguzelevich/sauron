@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/mguzelevich/go-nmea"
 	"github.com/mguzelevich/sauron"
 )
 
@@ -33,7 +34,14 @@ func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool
 				fmt.Fprintf(os.Stderr, "Error [%s]\n", err)
 			} else {
 				timestamp := time.Now().UTC().Format(time.RFC3339)
-				fmt.Fprintf(os.Stderr, "[%s] udp: src [%s] body [%s]\n", timestamp, string(buf[0:n]), srcAddr)
+				raw := buf[0:n]
+				fmt.Fprintf(os.Stderr, "[%s] udp: src [%s] body [%s]\n", timestamp, srcAddr, string(raw))
+
+				if message, err := nmea.Unmarshal(raw); err != nil {
+					fmt.Fprintf(os.Stderr, "[%s] [%s]\n", message, err)
+				} else {
+					fmt.Fprintf(os.Stderr, "[%s] [%s]\n", message, err)
+				}
 
 				loc := &sauron.Telemetry{}
 				if err := loc.ParseUdpPacket(string(buf[0:n])); err != nil {
