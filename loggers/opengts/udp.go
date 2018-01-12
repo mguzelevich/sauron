@@ -1,13 +1,13 @@
 package opengts
 
 import (
-	"fmt"
+	//"context"
 	"net"
-	"os"
 	"time"
 
 	"github.com/mguzelevich/go-nmea"
 	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/log"
 )
 
 func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool) {
@@ -24,23 +24,27 @@ func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool
 	if err != nil {
 		panic("StartUDPServer ListenUDP")
 	}
-	defer conn.Close()
-
 	buf := make([]byte, 1024*4)
-
+	closeChan := make(chan bool)
 	go func() {
 		for {
+			select {
+			case <-closeChan:
+				conn.Close()
+				return
+			default:
+			}
 			if n, srcAddr, err := conn.ReadFromUDP(buf); err != nil {
-				fmt.Fprintf(os.Stderr, "Error [%s]\n", err)
+				log.Error.Printf("Error [%s]\n", err)
 			} else {
 				timestamp := time.Now().UTC().Format(time.RFC3339)
 				raw := buf[0:n]
-				fmt.Fprintf(os.Stderr, "[%s] udp: src [%s] body [%s]\n", timestamp, srcAddr, string(raw))
+				log.Trace.Printf("[%s] udp: src [%s] body [%s]\n", timestamp, srcAddr, string(raw))
 
 				if message, err := nmea.Unmarshal(raw); err != nil {
-					fmt.Fprintf(os.Stderr, "[%s] [%s]\n", message, err)
+					log.Error.Printf("[%s] [%s]\n", message, err)
 				} else {
-					fmt.Fprintf(os.Stderr, "[%s] [%s]\n", message, err)
+					log.Debug.Printf("[%s] [%s]\n", message, err)
 				}
 
 				loc := &sauron.Telemetry{}
@@ -51,6 +55,11 @@ func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool
 		}
 	}()
 
-	fmt.Fprintf(os.Stderr, "opengts udp logging server started [%s]\n", addr)
+	log.Info.Printf("opengts udp logging server started [%s]\n", addr)
 	<-shutdownChan
+	// ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	// server.Shutdown(ctx)
+	close(closeChan)
+	log.Debug.Printf("opengts udp logging server gracefully stopped\n")
+	doneChan <- true
 }

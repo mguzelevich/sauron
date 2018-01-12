@@ -1,6 +1,7 @@
 package opengts
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -72,4 +73,8 @@ func StartHTTPServer(addr string, storage *sauron.Storage, shutdownChan chan boo
 	go server.ListenAndServe()
 	fmt.Fprintf(os.Stderr, "opengts http logging server started [%s]\n", addr)
 	<-shutdownChan
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	server.Shutdown(ctx)
+	fmt.Fprintf(os.Stderr, "opengts http logging server gracefully stopped\n")
+	doneChan <- true
 }

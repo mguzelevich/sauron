@@ -1,15 +1,17 @@
 package main
 
 import (
-	//	"log"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/log"
 	"github.com/mguzelevich/sauron/loggers/custom"
 	"github.com/mguzelevich/sauron/loggers/opengts"
 	"github.com/mguzelevich/sauron/ui"
@@ -70,11 +72,43 @@ func walk(r *mux.Router) {
 	})
 }
 
+func shutdown(shutdownChan chan bool, customDone chan bool, opengtsDone chan bool, uiDone chan bool) {
+	close(shutdownChan)
+	for {
+		timeout := time.After(10 * time.Second)
+		select {
+		case <-customDone:
+			log.Info.Printf("custom url logging server shutdowned")
+			customDone = nil
+		case <-opengtsDone:
+			log.Info.Printf("opengts udp logging server shutdowned")
+			opengtsDone = nil
+		case <-uiDone:
+			log.Info.Printf("ui server shutdowned")
+			uiDone = nil
+		case <-timeout:
+			return
+		default:
+			if customDone == nil && opengtsDone == nil && uiDone == nil {
+				return
+			}
+		}
+	}
+
+}
+
 func main() {
 	flag.Parse()
 
+	log.InitLoggers(&log.Logger{
+		os.Stdout, // ioutil.Discard,
+		os.Stdout, // ioutil.Discard,
+		os.Stdout,
+		os.Stdout,
+		os.Stderr,
+	})
+
 	shutdownChan := make(chan bool)
-	doneChan := make(chan bool)
 
 	storage := sauron.NewStorage()
 
@@ -83,6 +117,9 @@ func main() {
 
 	go ui.StartServer(uiServerAddr, shutdownChan)
 
-	<-doneChan
-	close(shutdownChan)
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, os.Interrupt)
+	<-stopChan
+
+	shutdown(shutdownChan, custom.DoneChan(), opengts.DoneChan(), ui.DoneChan())
 }

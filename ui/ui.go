@@ -1,20 +1,22 @@
 package ui
 
 import (
-	"fmt"
+	"context"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
+
+	"github.com/mguzelevich/sauron/log"
 )
 
 //go:-generate go-bindata-assetfs -prefix "../../ui/dist" -pkg main -o assetfs_ui.go ../../ui/dist/...
 //go:generate rice embed-go
 
 var (
-	server *http.Server
+	server   *http.Server
+	doneChan chan bool
 )
 
 func StartServer(addr string, shutdownChan chan bool) {
@@ -33,7 +35,19 @@ func StartServer(addr string, shutdownChan chan bool) {
 
 	server.Handler = r
 
-	fmt.Fprintf(os.Stderr, "ui server started [%s]\n", addr)
 	go server.ListenAndServe()
+	log.Info.Printf("ui server started [%s]\n", addr)
 	<-shutdownChan
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	server.Shutdown(ctx)
+	log.Debug.Printf("ui server gracefully stopped\n")
+	doneChan <- true
+}
+
+func DoneChan() chan bool {
+	return doneChan
+}
+
+func init() {
+	doneChan = make(chan bool)
 }
