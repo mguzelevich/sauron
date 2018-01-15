@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/mguzelevich/go-nmea"
-	"github.com/mguzelevich/sauron"
 	"github.com/mguzelevich/sauron/log"
+	"github.com/mguzelevich/sauron/storage"
 )
 
-func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool) {
-	locationsStorage = storage
+func StartUDPServer(addr string, storageDb *storage.Storage, shutdownChan chan bool) {
+	db = storageDb
 
 	/* Lets prepare a address at any address at port 10001*/
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
@@ -47,7 +47,7 @@ func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool
 					log.Debug.Printf("[%s] [%s]\n", message, err)
 				}
 
-				loc := &sauron.Telemetry{}
+				loc := &storage.Telemetry{}
 				if err := loc.ParseUdpPacket(string(buf[0:n])); err != nil {
 					//
 				}

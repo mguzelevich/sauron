@@ -4,15 +4,15 @@ import (
 	// "fmt"
 	"net/http"
 
-	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/storage"
 )
 
 var (
-	server    *http.Server
-	doneChan  chan bool
-	statistic sauron.Stats
+	server   *http.Server
+	doneChan chan bool
+	db       *storage.Storage
 
-	locationsStorage *sauron.Storage
+	statistic string
 )
 
 func DoneChan() chan bool {

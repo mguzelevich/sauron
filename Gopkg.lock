@@ -8,6 +8,12 @@
   revision = "c02ca9a983da5807ddf7d796784928f5be4afd09"
 
 [[projects]]
+  name = "github.com/boltdb/bolt"
+  packages = ["."]
+  revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
+  version = "v1.3.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/daaku/go.zipexe"
   packages = ["."]
@@ -33,13 +39,23 @@
 
 [[projects]]
   branch = "master"
+<<<<<<< HEAD
   name = "github.com/mguzelevich/go-nmea"
   packages = [".","messages"]
   revision = "0be6b514dc62b817f7e7c5f4ff978b42db56f5eb"
+=======
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "fff93fa7cd278d84afc205751523809c464168ab"
+>>>>>>> tmp
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
+<<<<<<< HEAD
   inputs-digest = "6bde25595d2c1608f14d00666f43edf5e23a48aff9ffaecb0cab999be8e78d9e"
+=======
+  inputs-digest = "f36e9d214c54199d41dbc6fd80eccf52d361bcd69c217bdabcbcd46e4a1b5fde"
+>>>>>>> tmp
   solver-name = "gps-cdcl"
   solver-version = 1
