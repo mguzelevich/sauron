@@ -4,12 +4,12 @@ import (
 	// "fmt"
 	"net/http"
 
-	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/storage"
 )
 
 var (
-	server    *http.Server
-	statistic sauron.Stats
+	server *http.Server
+	db     *storage.Storage
 
-	locationsStorage *sauron.Storage
+	statistic string
 )

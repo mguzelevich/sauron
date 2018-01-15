@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/storage"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -34,26 +34,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func logLocationHandler(w http.ResponseWriter, r *http.Request) {
-	statistic.Requests++
-
 	w.Header().Set("Content-Type", "application/json")
 
 	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else {
-		loc := &sauron.Telemetry{}
+		loc := &storage.Telemetry{}
 		if err := loc.ParseCustomUrl(string(body)); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		locationsStorage.Save(loc)
+		db.Save(loc)
 	}
 }
 
-func StartHTTPServer(addr string, storage *sauron.Storage, shutdownChan chan bool) {
-	locationsStorage = storage
+func StartHTTPServer(addr string, storageDb *storage.Storage, shutdownChan chan bool) {
+	db = storageDb
 
 	server = &http.Server{
 		Addr:           addr,

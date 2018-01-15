@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/mguzelevich/sauron"
+	"github.com/mguzelevich/sauron/storage"
 )
 
-func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool) {
-	locationsStorage = storage
+func StartUDPServer(addr string, storageDb *storage.Storage, shutdownChan chan bool) {
+	db = storageDb
 
 	/* Lets prepare a address at any address at port 10001*/
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
@@ -35,7 +35,7 @@ func StartUDPServer(addr string, storage *sauron.Storage, shutdownChan chan bool
 				timestamp := time.Now().UTC().Format(time.RFC3339)
 				fmt.Fprintf(os.Stderr, "[%s] udp: src [%s] body [%s]\n", timestamp, string(buf[0:n]), srcAddr)
 
-				loc := &sauron.Telemetry{}
+				loc := &storage.Telemetry{}
 				if err := loc.ParseUdpPacket(string(buf[0:n])); err != nil {
 					//
 				}
