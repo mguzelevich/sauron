@@ -1,7 +1,9 @@
-package messages
+package nmea
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 )
 
 /*
@@ -28,38 +30,36 @@ It is called RMC, The Recommended Minimum, which will look similar to:
 */
 
 type Rmc struct {
-	Time              string
+	Timestamp         *time.Time
 	Status            string
-	Latitude          string
-	Longitude         string
-	Speed             string
-	Direction         string
-	Date              string
-	MagneticVariation string
+	Location          *Location
+	Speed             float64
+	Direction         float64
+	MagneticVariation float64
 	checksum          string
 }
 
-func (r Rmc) Marshal() ([]byte, error) {
-	return nil, nil
-}
-
-func (r Rmc) Unmarshal(fields []string) error {
-	r.Status = fields[2]
-	return nil
-}
-
-func checkRmc(fields []string) error {
-	if len(fields) != 13 {
-		return fmt.Errorf("incorrect fields count")
+func (r Rmc) check(p *NmeaPacket) error {
+	if p.packetType != "$GPRMC" {
+		return fmt.Errorf("incorrect packet type [%s]. $GPRMC expected", p.packetType)
 	}
 	return nil
 }
 
-func createRmc(fields []string) (NmeaMessage, error) {
-	if err := checkRmc(fields); err != nil {
-		return nil, err
+func (r *Rmc) build(p *NmeaPacket) error {
+	if err := r.check(p); err != nil {
+		return err
 	}
-	msg := &Rmc{}
-	err := msg.Unmarshal(fields)
-	return msg, err
+	r.Timestamp, _ = toTime(p.fields[8], p.fields[0])
+	r.Status = p.fields[1]
+	r.Location, _ = nmeaToLocation(p.fields[2], p.fields[3], p.fields[4], p.fields[5])
+
+	speed, _ := strconv.ParseFloat(p.fields[6], 64)
+	r.Speed = speed
+
+	direction, _ := strconv.ParseFloat(p.fields[7], 64)
+	r.Direction = direction
+
+	r.MagneticVariation, _ = strToLatLon(p.fields[8], p.fields[9])
+	return nil
 }

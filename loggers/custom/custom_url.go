@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mguzelevich/sauron/log"
+	"github.com/mguzelevich/go-log"
 	"github.com/mguzelevich/sauron/storage"
 )
 
@@ -18,10 +18,65 @@ type Server struct {
 	addr     string
 	server   *http.Server
 	doneChan chan bool
+
+	processTelemetryChan chan string
 }
 
 func (s Server) DoneChan() chan bool {
 	return s.doneChan
+}
+
+func (s *Server) processLoop() {
+	for raw := range s.processTelemetryChan {
+		msg := &message{}
+		if err := msg.ParseCustomUrl(raw); err != nil {
+			log.Error.Printf("parse packet [%q] error [%s]", raw, err)
+			continue
+		}
+		/*
+			получить хеш девайса из телеметрии
+			true:
+				получить инстанс девайса из стораджа
+				получить инстанс аккаунта
+			false:
+				создать инстанс девайса
+				приааттачить к анонимусу (создать новый аккаунт)
+
+			получить инстанс девайса из аккаунта
+			записать телеметрию в девайс
+		*/
+
+		/*
+			получить хеш девайса из телеметрии
+			получить инстанс девайса из аккаунта
+			записать телеметрию в девайс
+		*/
+
+		account := &storage.Account{}
+
+		device, err := storage.GetDevice(&storage.Device{Id: msg.device().Hash()})
+		if err != nil {
+			switch err {
+			case storage.ErrEntityNotFound:
+				device, _ = account.CreateDevice(device)
+			default:
+				panic(err)
+			}
+		}
+
+		account, err = storage.ReadAccount(&storage.Account{Id: device.UserId})
+		if err != nil {
+			switch err {
+			case storage.ErrEntityNotFound:
+				account, _ = storage.CreateAccount(account)
+			default:
+				panic(err)
+			}
+		}
+
+		//account, _ := storage.ReadAccount(&storage.Account{Id: device.UserId})
+		device.AddTelemetry(msg.telemetry())
+	}
 }
 
 func (s *Server) ListenAndServe(shutdownChan chan bool) {
@@ -33,8 +88,8 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", handler).Methods("GET")
-	r.HandleFunc("/log", logLocationHandler).Methods("POST")
+	r.HandleFunc("/", s.handler).Methods("GET")
+	r.HandleFunc("/log", s.logLocationHandler).Methods("POST")
 	s.server.Handler = r
 
 	go s.server.ListenAndServe()
@@ -46,7 +101,7 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 	close(s.doneChan)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 	log.Trace.Printf("url: %s %s %d %v\n", r.Method, r.RequestURI, r.ContentLength, r.Header)
 	w.Header().Set("Content-Type", "application/json")
 
@@ -67,28 +122,27 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func logLocationHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) logLocationHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if body, err := ioutil.ReadAll(r.Body); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else {
-		log.Trace.Printf("msg received: %v\n", string(body))
-		loc := &storage.Telemetry{}
-		if err := loc.ParseCustomUrl(string(body)); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		timestamp := time.Now().UTC().Format(time.RFC3339)
+		raw := string(body)
+		log.Stdout.Printf("[%s] http: [%q]", timestamp, raw)
 		w.WriteHeader(http.StatusOK)
-		storage.Save(loc)
+		s.processTelemetryChan <- raw
 	}
 }
 
 func New(addr string) *Server {
 	server := &Server{
-		addr:     addr,
-		doneChan: make(chan bool),
+		addr:                 addr,
+		doneChan:             make(chan bool),
+		processTelemetryChan: make(chan string),
 	}
+	go server.processLoop()
 	return server
 }

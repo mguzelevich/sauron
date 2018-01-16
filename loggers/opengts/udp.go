@@ -3,11 +3,10 @@ package opengts
 import (
 	//"context"
 	"net"
+	"strings"
 	"time"
 
-	"github.com/mguzelevich/go-nmea"
-	"github.com/mguzelevich/sauron/log"
-	"github.com/mguzelevich/sauron/storage"
+	"github.com/mguzelevich/go-log"
 )
 
 func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
@@ -36,19 +35,15 @@ func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
 				log.Error.Printf("Error [%s]\n", err)
 			} else {
 				timestamp := time.Now().UTC().Format(time.RFC3339)
-				raw := buf[0:n]
-				log.Trace.Printf("[%s] udp: src [%s] body [%s]\n", timestamp, srcAddr, string(raw))
+				raw := strings.TrimSpace(string(buf[0:n]))
+				log.Stdout.Printf("[%s] udp[%s]: [%q]", timestamp, srcAddr, raw)
 
-				if message, err := nmea.Unmarshal(raw); err != nil {
-					log.Error.Printf("[%s] [%s]\n", message, err)
-				} else {
-					log.Debug.Printf("[%s] [%s]\n", message, err)
+				msg := udpMessage{}
+				if err := msg.ParseUdpPacket(raw); err != nil {
+					log.Error.Printf("parse packet [%q] error [%s]", raw, err)
+					continue
 				}
-
-				loc := &storage.Telemetry{}
-				if err := loc.ParseUdpPacket(string(buf[0:n])); err != nil {
-					//
-				}
+				s.processMsgChan <- msg
 			}
 		}
 	}()
@@ -58,6 +53,6 @@ func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
 	// ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	// server.Shutdown(ctx)
 	close(closeChan)
-	log.Debug.Printf("opengts udp logging server gracefully stopped\n")
+	log.Info.Printf("opengts udp logging server gracefully stopped\n")
 	s.doneChan <- true
 }

@@ -1,48 +1,23 @@
 package storage
 
 import (
-	//	"encoding/json"
-	//	"os"
-	"fmt"
+	"hash/crc32"
+	"os"
 	"time"
 
-	"github.com/boltdb/bolt"
+	"github.com/mguzelevich/go-log"
+)
 
-	"github.com/mguzelevich/sauron/log"
+var (
+	dataStorage *Storage
+	crc32q      *crc32.Table
 )
 
 type Storage struct {
-	db *bolt.DB
+	engine StorageEngine
 
-	doneChan chan bool
-
-	saveTelemetryChan chan *Telemetry
-}
-
-var storage *Storage
-
-func New(filename string, shutdownChan chan bool) (*Storage, error) {
-	storage := &Storage{
-		doneChan:          make(chan bool),
-		saveTelemetryChan: make(chan *Telemetry),
-	}
-
-	if boltDb, err := bolt.Open(filename, 0600, nil); err != nil {
-		return nil, fmt.Errorf("cann't open database [%s] %s", filename, err)
-	} else {
-		log.Info.Printf("storage inited [%s]", filename)
-		storage.db = boltDb
-	}
-	go storage.shutdownLoop(shutdownChan)
-	go storage.saveLoop()
-	storage.initSchema()
-	return storage, nil
-}
-
-func Init(filename string, shutdownChan chan bool) (*Storage, error) {
-	db, err := New(filename, shutdownChan)
-	storage = db
-	return db, err
+	engineShutdownChan chan bool
+	doneChan           chan bool
 }
 
 func (s Storage) DoneChan() chan bool {
@@ -51,103 +26,80 @@ func (s Storage) DoneChan() chan bool {
 
 func (s *Storage) shutdownLoop(shutdownChan chan bool) {
 	<-shutdownChan
-	s.db.Close()
+	close(s.engineShutdownChan)
+
+	done := s.engine.DoneChan()
+
+	func() {
+		for {
+			timeout := time.After(10 * time.Second)
+			select {
+			case <-done:
+				done = nil
+			case <-timeout:
+				log.Warning.Printf("storage shutdowned by timer")
+				return
+			default:
+				if done == nil {
+					return
+				}
+			}
+		}
+	}()
 	log.Info.Printf("storage gracefully stopped")
 	close(s.doneChan)
 }
 
-func (s *Storage) saveLoop() {
-	for loc := range s.saveTelemetryChan {
-		s.saveLocation(loc)
+func Init(engineFabric func(params map[string]string, shutdownChan chan bool) (StorageEngine, error), params map[string]string, shutdownChan chan bool) *Storage {
+	dataStorage = &Storage{
+		engineShutdownChan: make(chan bool),
+		doneChan:           make(chan bool),
 	}
+
+	if engine, err := engineFabric(params, dataStorage.engineShutdownChan); err != nil {
+		log.Error.Printf("storage init error %s", err)
+		os.Exit(1)
+	} else {
+		dataStorage.engine = engine
+		log.Info.Printf("storage started")
+	}
+
+	go dataStorage.shutdownLoop(shutdownChan)
+	return dataStorage
 }
 
-func (s *Storage) initSchema() error {
-	timestamp := time.Now().UTC().Format("20060102")
+func Dump() {
 
-	s.initBuckets()
+}
 
-	meta := []struct {
-		key   string
-		value string
-	}{
-		{"version", "0.1"},
-		{"created_at", timestamp},
-		{"updated_at", timestamp},
-	}
+func Accounts() ([]*Account, error) {
+	accounts, err := dataStorage.engine.Accounts()
+	return accounts, err
+}
 
-	s.db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(".meta"))
-		for _, r := range meta {
-			if err := bucket.Put([]byte(r.key), []byte(r.value)); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+func CreateAccount(account *Account) (*Account, error) {
+	accounts, err := dataStorage.engine.CreateAccount(account)
+	return accounts, err
+}
+
+func ReadAccount(account *Account) (*Account, error) {
+	accounts, err := dataStorage.engine.ReadAccount(account)
+	return accounts, err
+}
+
+func UpdateAccount(account *Account) (*Account, error) {
+	return nil, nil
+}
+
+func DeleteAccount(account *Account) error {
 	return nil
 }
 
-func (s *Storage) initBuckets() error {
-	buckets := []string{
-		".meta", "tasks", "files",
-	}
-	tasksBuckets := []string{
-		"pending", "process", "finished", "failed",
-	}
-	if err := s.db.Update(func(tx *bolt.Tx) error {
-		for _, name := range buckets {
-			bucket, err := tx.CreateBucketIfNotExists([]byte(name))
-			if err != nil {
-				return fmt.Errorf("create bucket: %s %s", bucket, err)
-			}
-		}
-		tasksBucket := tx.Bucket([]byte("tasks"))
-		for _, name := range tasksBuckets {
-			bucket, err := tasksBucket.CreateBucketIfNotExists([]byte(name))
-			if err != nil {
-				return fmt.Errorf("create bucket: %s %s", bucket, err)
-			}
-		}
-		return nil
-	}); err != nil {
-		log.Error.Printf("%s", err)
-	}
-	return nil
+func GetDevice(device *Device) (*Device, error) {
+	device, err := dataStorage.engine.GetDevice(device)
+	return device, err
 }
 
-func (s *Storage) get(bucketName []string, key string) (string, error) {
-	var response string
-	s.db.View(func(tx *bolt.Tx) error {
-		var bucket *bolt.Bucket
-		for _, bn := range bucketName {
-			if bucket == nil {
-				bucket = tx.Bucket([]byte(bn))
-			} else {
-				bucket = bucket.Bucket([]byte(bn))
-			}
-		}
-		response = string(bucket.Get([]byte(key)))
-		return nil
-	})
-	return response, nil
-}
-
-func Save(telemetry *Telemetry) {
-	go func() {
-		storage.saveTelemetryChan <- telemetry
-	}()
-}
-
-func (s *Storage) saveLocation(t *Telemetry) {
-	// f, err := s.getFile(t.Device.Hash())
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "ERROR: %v", err)
-	// } else {
-	// 	if out, err := json.Marshal(t); err != nil {
-	// 		// http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	} else {
-	// 		fmt.Fprintf(f, "%s\n", string(out))
-	// 	}
-	// }
+func init() {
+	crc32q = crc32.MakeTable(0xD5828281)
 }

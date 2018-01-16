@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-
-	"github.com/mguzelevich/sauron/log"
+	"github.com/mguzelevich/go-log"
 )
 
 type Server struct {
@@ -22,6 +21,16 @@ func (s Server) DoneChan() chan bool {
 	return s.doneChan
 }
 
+func router() *mux.Router {
+	r := mux.NewRouter()
+	r.HandleFunc("/", handler).Methods("GET")
+	r.HandleFunc("/database/accounts", databaseAccountsHandler).Methods("POST")
+	r.HandleFunc("/database/dump", databaseDumpHandler).Methods("POST")
+	r.HandleFunc("/database/telemetry", databaseTelemetryHandler).Methods("POST")
+	//r.HandleFunc("/database/{command}", databaseHandler).Methods("POST")
+	return r
+}
+
 func (s *Server) ListenAndServe(shutdownChan chan bool) {
 	s.server = &http.Server{
 		Addr:           s.addr,
@@ -30,10 +39,7 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", handler).Methods("GET")
-	r.HandleFunc("/database/{command}", databaseHandler).Methods("POST")
-	s.server.Handler = r
+	s.server.Handler = router()
 
 	go s.server.ListenAndServe()
 	log.Info.Printf("api server started [%s]\n", s.addr)

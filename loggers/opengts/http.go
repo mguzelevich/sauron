@@ -10,9 +10,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-
-	"github.com/mguzelevich/sauron/log"
-	"github.com/mguzelevich/sauron/storage"
+	"github.com/mguzelevich/go-log"
+	//	"github.com/mguzelevich/sauron/storage"
 )
 
 func (s *Server) ListenAndServe(shutdownChan chan bool) {
@@ -25,8 +24,7 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", handler).Methods("GET")
-	r.HandleFunc("/log", logLocationHandler).Methods("POST")
-	r.HandleFunc("/gts", handler).Methods("GET", "PUT")
+	r.HandleFunc("/gts", handler).Methods("POST")
 	s.server.Handler = r
 
 	go s.server.ListenAndServe()
@@ -56,22 +54,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Fprintf(os.Stderr, "out: %s\n", string(out))
 		fmt.Fprintf(w, string(out))
-	}
-}
-
-func logLocationHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	if body, err := ioutil.ReadAll(r.Body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	} else {
-		loc := &storage.Telemetry{}
-		if err := loc.ParseCustomUrl(string(body)); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		storage.Save(loc)
 	}
 }

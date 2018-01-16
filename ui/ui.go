@@ -8,7 +8,7 @@ import (
 	"github.com/GeertJohan/go.rice"
 	"github.com/gorilla/mux"
 
-	"github.com/mguzelevich/sauron/log"
+	"github.com/mguzelevich/go-log"
 )
 
 //go:-generate go-bindata-assetfs -prefix "../../ui/dist" -pkg main -o assetfs_ui.go ../../ui/dist/...

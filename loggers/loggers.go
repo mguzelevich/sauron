@@ -1,19 +1,9 @@
 package loggers
 
-import (
-	// "encoding/json"
-	// "fmt"
-	// "io/ioutil"
-	// "net/http"
-	// "net/url"
-	// "os"
-	// "time"
-
-	// "github.com/gorilla/mux"
-
-	"github.com/mguzelevich/sauron"
-)
+import ()
 
 type LoggerServer interface {
-	StartServer(addr string, storage *sauron.Storage, shutdownChan chan bool)
+	New(addr string)
+	ListenAndServe(shutdownChan chan bool)
+	DoneChan() chan bool
 }
