@@ -19,7 +19,9 @@ type Storage struct {
 	saveTelemetryChan chan *Telemetry
 }
 
-func Init(filename string, shutdownChan chan bool) (*Storage, error) {
+var storage *Storage
+
+func New(filename string, shutdownChan chan bool) (*Storage, error) {
 	storage := &Storage{
 		doneChan:          make(chan bool),
 		saveTelemetryChan: make(chan *Telemetry),
@@ -35,6 +37,12 @@ func Init(filename string, shutdownChan chan bool) (*Storage, error) {
 	go storage.saveLoop()
 	storage.initSchema()
 	return storage, nil
+}
+
+func Init(filename string, shutdownChan chan bool) (*Storage, error) {
+	db, err := New(filename, shutdownChan)
+	storage = db
+	return db, err
 }
 
 func (s Storage) DoneChan() chan bool {
@@ -125,9 +133,9 @@ func (s *Storage) get(bucketName []string, key string) (string, error) {
 	return response, nil
 }
 
-func (s *Storage) Save(telemetry *Telemetry) {
+func Save(telemetry *Telemetry) {
 	go func() {
-		s.saveTelemetryChan <- telemetry
+		storage.saveTelemetryChan <- telemetry
 	}()
 }
 

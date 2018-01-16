@@ -2,14 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
-
+	"github.com/mguzelevich/sauron/api"
 	"github.com/mguzelevich/sauron/log"
 	"github.com/mguzelevich/sauron/loggers/custom"
 	"github.com/mguzelevich/sauron/loggers/opengts"
@@ -17,87 +14,68 @@ import (
 	"github.com/mguzelevich/sauron/ui"
 )
 
+type shutdownable interface {
+	DoneChan() chan bool
+}
+
 var (
 	debug bool
+
+	apiServerAddr string
+	database      string
 
 	httpServerAddr string
 	udpServerAddr  string
 
 	uiServerAddr string
-
-	database string
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "debug mode")
 
-	flag.StringVar(&httpServerAddr, "http", "localhost:8080", "http logger server address")
-	flag.StringVar(&udpServerAddr, "udp", ":8022", "udp logger server address")
-	flag.StringVar(&uiServerAddr, "ui", "localhost:8081", "ui server address")
+	flag.StringVar(&apiServerAddr, "api", "localhost:8080", "http logger server address")
 
-	flag.StringVar(&database, "db", "/tmp/librarian.db", "database file")
+	flag.StringVar(&httpServerAddr, "http", "localhost:8081", "http logger server address")
+	flag.StringVar(&udpServerAddr, "udp", ":8082", "udp logger server address")
+	flag.StringVar(&uiServerAddr, "ui", "localhost:8083", "ui server address")
+
+	flag.StringVar(&database, "db", "/tmp/sauron.db", "database file")
 }
 
-func walk(r *mux.Router) {
-	r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
-		t, err := route.GetPathTemplate()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "err: %v\n", err)
-			//return err
-		}
-		qt, err := route.GetQueriesTemplates()
-		if err != nil {
-			//fmt.Fprintf(os.Stderr, "err: %v\n", err)
-			//return err
-		}
-		// p will contain regular expression is compatible with regular expression in Perl, Python, and other languages.
-		// for instance the regular expression for path '/articles/{id}' will be '^/articles/(?P<v0>[^/]+)$'
-		p, err := route.GetPathRegexp()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "err: %v\n", err)
-			//return err
-		}
-		// qr will contain a list of regular expressions with the same semantics as GetPathRegexp,
-		// just applied to the Queries pairs instead, e.g., 'Queries("surname", "{surname}") will return
-		// {"^surname=(?P<v0>.*)$}. Where each combined query pair will have an entry in the list.
-		qr, err := route.GetQueriesRegexp()
-		if err != nil {
-			//fmt.Fprintf(os.Stderr, "err: %v\n", err)
-			//return err
-		}
-		m, err := route.GetMethods()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "err: %v\n", err)
-			//return err
-		}
-		fmt.Fprintf(os.Stderr, "> m: %v\tqt: %v qr: %v t: %v p: %v\n", strings.Join(m, ","), strings.Join(qt, ","), strings.Join(qr, ","), t, p)
-		return nil
-	})
-}
-
-func shutdown(shutdownChan chan bool, customDone chan bool, opengtsDone chan bool, uiDone chan bool) {
+func shutdown(shutdownChan chan bool, services ...shutdownable) {
 	close(shutdownChan)
+
+	chans := []chan bool{}
+	for _, s := range services {
+		chans = append(chans, s.DoneChan())
+	}
+
 	for {
 		timeout := time.After(10 * time.Second)
 		select {
-		case <-customDone:
-			log.Info.Printf("custom url logging server shutdowned")
-			customDone = nil
-		case <-opengtsDone:
-			log.Info.Printf("opengts udp logging server shutdowned")
-			opengtsDone = nil
-		case <-uiDone:
-			log.Info.Printf("ui server shutdowned")
-			uiDone = nil
+		case <-chans[0]:
+			chans[0] = nil
+		case <-chans[1]:
+			chans[1] = nil
+		case <-chans[2]:
+			chans[2] = nil
+		case <-chans[3]:
+			chans[3] = nil
+		case <-chans[4]:
+			chans[4] = nil
 		case <-timeout:
+			log.Warning.Printf("shutdowned by timer")
 			return
 		default:
-			if customDone == nil && opengtsDone == nil && uiDone == nil {
+			allDone := true
+			for _, ch := range chans {
+				allDone = allDone && ch == nil
+			}
+			if allDone {
 				return
 			}
 		}
 	}
-
 }
 
 func main() {
@@ -119,14 +97,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	go custom.StartServer(httpServerAddr, db, shutdownChan)
-	go opengts.StartUDPServer(udpServerAddr, db, shutdownChan)
+	apiServer := api.New(apiServerAddr)
+	go apiServer.ListenAndServe(shutdownChan)
 
-	go ui.StartServer(uiServerAddr, shutdownChan)
+	customServer := custom.New(httpServerAddr)
+	go customServer.ListenAndServe(shutdownChan)
+
+	opengtsServer := opengts.New(udpServerAddr)
+	go opengtsServer.ListenAndServeUdp(shutdownChan)
+
+	uiServer := ui.New(uiServerAddr)
+	go uiServer.ListenAndServe(shutdownChan)
 
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt)
 	<-stopChan
 
-	shutdown(shutdownChan, custom.DoneChan(), opengts.DoneChan(), ui.DoneChan())
+	shutdown(shutdownChan, db, apiServer, customServer, opengtsServer, uiServer)
 }

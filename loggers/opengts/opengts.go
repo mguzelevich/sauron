@@ -3,22 +3,22 @@ package opengts
 import (
 	// "fmt"
 	"net/http"
-
-	"github.com/mguzelevich/sauron/storage"
 )
 
-var (
+type Server struct {
+	addr     string
 	server   *http.Server
 	doneChan chan bool
-	db       *storage.Storage
-
-	statistic string
-)
-
-func DoneChan() chan bool {
-	return doneChan
 }
 
-func init() {
-	doneChan = make(chan bool)
+func (s Server) DoneChan() chan bool {
+	return s.doneChan
+}
+
+func New(addr string) *Server {
+	server := &Server{
+		addr:     addr,
+		doneChan: make(chan bool),
+	}
+	return server
 }

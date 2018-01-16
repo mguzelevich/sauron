@@ -10,11 +10,9 @@ import (
 	"github.com/mguzelevich/sauron/storage"
 )
 
-func StartUDPServer(addr string, storageDb *storage.Storage, shutdownChan chan bool) {
-	db = storageDb
-
+func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
 	/* Lets prepare a address at any address at port 10001*/
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
+	udpAddr, err := net.ResolveUDPAddr("udp", s.addr)
 	if err != nil {
 		panic("StartUDPServer ResolveUDPAddr")
 	}
@@ -55,11 +53,11 @@ func StartUDPServer(addr string, storageDb *storage.Storage, shutdownChan chan b
 		}
 	}()
 
-	log.Info.Printf("opengts udp logging server started [%s]\n", addr)
+	log.Info.Printf("opengts udp logging server started [%s]\n", s.addr)
 	<-shutdownChan
 	// ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	// server.Shutdown(ctx)
 	close(closeChan)
 	log.Debug.Printf("opengts udp logging server gracefully stopped\n")
-	doneChan <- true
+	s.doneChan <- true
 }

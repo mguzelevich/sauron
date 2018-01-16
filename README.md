@@ -8,6 +8,14 @@ Telemetry Tracking Server
 $ go get -u github.com/mguzelevich/sauron/...
 ```
 
+## http api
+
+list of users
+
+```
+$ curl -X POST --data "{}" localhost:8080/users
+```
+
 ## features
 
 telemetry sources:
@@ -35,9 +43,9 @@ telemetry sources:
 example:
 
 ```
-$ curl localhost:8080/log?lat=53.9279421&lon=27.6437863&time=2017-12-27T12%3A30%3A30.338Z&s=0.0&prov=network&aid=4de1a4a0e296ef63&acc=21.795000076293945
+$ curl localhost:8081/log?lat=53.9279421&lon=27.6437863&time=2017-12-27T12%3A30%3A30.338Z&s=0.0&prov=network&aid=4de1a4a0e296ef63&acc=21.795000076293945
 
-$ curl -X POST --data "lat=53.9279421&lon=27.6437863&time=2017-12-27T12%3A30%3A30.338Z&s=0.0&prov=network&aid=4de1a4a0e296ef63&acc=21.795000076293945" localhost:8080/log
+$ curl -X POST --data "lat=53.9279421&lon=27.6437863&time=2017-12-27T12%3A30%3A30.338Z&s=0.0&prov=network&aid=4de1a4a0e296ef63&acc=21.795000076293945" localhost:8081/log
 ```
 
 ### UDP
@@ -45,7 +53,7 @@ $ curl -X POST --data "lat=53.9279421&lon=27.6437863&time=2017-12-27T12%3A30%3A3
 example:
 
 ```
-$ bash -c 'echo -e "mgu/mi5s/$GPRMC,083543,A,5355.67728,N,2738.62654,E,0.000000,0.000000,050118,,*2E" > /dev/udp/31.130.207.24/8822'
+$ bash -c 'echo -e "mgu/mi5s/$GPRMC,083543,A,5355.67728,N,2738.62654,E,0.000000,0.000000,050118,,*2E" > /dev/udp/31.130.207.24/8082'
 ```
 
 ## Examples
@@ -53,8 +61,8 @@ $ bash -c 'echo -e "mgu/mi5s/$GPRMC,083543,A,5355.67728,N,2738.62654,E,0.000000,
 run 
 
 ```
-$ sauron --http :8080 --udp :8822 --ui :8081
+$ sauron --api :8080 --http :8081 --udp :8082 --ui :8083
 ```
 
-web dashboard `http://localhost:8081/`
+web dashboard `http://localhost:8083/`
 
