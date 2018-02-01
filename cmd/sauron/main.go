@@ -90,13 +90,14 @@ func main() {
 	flag.Parse()
 
 	log.InitLoggers(&log.Logger{
-		os.Stdout, // ioutil.Discard,
-		os.Stdout, // ioutil.Discard,
-		os.Stdout,
-		os.Stdout,
+		os.Stderr, // ioutil.Discard,
+		os.Stderr, // ioutil.Discard,
+		os.Stderr,
+		os.Stderr,
 		os.Stderr,
 	})
 	log.Stdout = stllog.New(os.Stdout, "", 0)
+	log.Stderr = stllog.New(os.Stderr, "", 0)
 
 	log.Info.Printf(
 		"starting the service... <commit: %s, build time: %s, release: %s>",

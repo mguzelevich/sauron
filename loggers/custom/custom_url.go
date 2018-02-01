@@ -131,7 +131,7 @@ func (s *Server) logLocationHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		timestamp := time.Now().UTC().Format(time.RFC3339)
 		raw := string(body)
-		log.Stdout.Printf("[%s] http: [%q]", timestamp, raw)
+		log.Stderr.Printf("[%s] http: [%q]", timestamp, raw)
 		w.WriteHeader(http.StatusOK)
 		s.processTelemetryChan <- raw
 	}

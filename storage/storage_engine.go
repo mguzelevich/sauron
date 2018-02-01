@@ -2,23 +2,21 @@ package storage
 
 import ()
 
+type Entity interface {
+	Type() string
+	Pk() string
+}
+
 type StorageEngine interface {
 	DoneChan() chan bool
 
+	Create(e Entity) (Entity, error)
+	Read(e Entity) (Entity, error)
+	Update(e Entity) (Entity, error)
+	Delete(e Entity) error
+
 	// Accounts - return all accounts
 	Accounts() ([]*Account, error)
-
-	//
-	CreateAccount(account *Account) (*Account, error)
-
-	//
-	ReadAccount(account *Account) (*Account, error)
-
-	// UpdateAccount -
-	// UpdateAccount(account *Account) (*Account, error)
-
-	// DeleteAccount -
-	// DeleteAccount(account *Account) error
 
 	// GetDevice - get device by device hash
 	GetDevice(d *Device) (*Device, error)

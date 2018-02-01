@@ -14,8 +14,16 @@ type Device struct {
 	TelemetryStorage TelemetryStorage `json:"-"`
 }
 
-func ChangeAccount() {
+func (d Device) Type() string {
+	return "Device"
+}
 
+func (d Device) Pk() string {
+	if d.Id == "" {
+		// d.Id = "00000000-0000-0000-0000-000000000000"
+		d.Id = d.Hash()
+	}
+	return d.Id
 }
 
 func (d *Device) Telemetry() ([]*Telemetry, error) {

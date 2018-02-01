@@ -36,7 +36,7 @@ func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
 			} else {
 				timestamp := time.Now().UTC().Format(time.RFC3339)
 				raw := strings.TrimSpace(string(buf[0:n]))
-				log.Stdout.Printf("[%s] udp[%s]: [%q]", timestamp, srcAddr, raw)
+				log.Stderr.Printf("[%s] udp[%s]: [%q]", timestamp, srcAddr, raw)
 
 				msg := udpMessage{}
 				if err := msg.ParseUdpPacket(raw); err != nil {

@@ -1,11 +1,25 @@
 package storage
 
-import ()
+import (
+//	"github.com/mguzelevich/go-log"
+)
 
 type Account struct {
-	Id        string   `json:"id"`
-	FirstName string   `json:"first_name"`
-	Devices   []Device `json:"devices"`
+	Id        string    `json:"id"`
+	FirstName string    `json:"first_name"`
+	Devices   []*Device `json:"devices"`
+}
+
+func (a Account) Type() string {
+	return "Account"
+}
+
+func (a Account) Pk() string {
+	if a.Id == "" {
+		// a.Id, _ := log.UUID()
+		a.Id = "00000000-0000-0000-0000-000000000000"
+	}
+	return a.Id
 }
 
 func (a *Account) GetDevices() []*Device {
@@ -13,8 +27,12 @@ func (a *Account) GetDevices() []*Device {
 }
 
 func (a *Account) CreateDevice(device *Device) (*Device, error) {
-	device, err := dataStorage.engine.CreateDevice(a, device)
-	return device, err
+	entity, err := dataStorage.engine.Create(device)
+	d := entity.(*Device)
+	a.Devices = append(a.Devices, d)
+
+	_, err = dataStorage.engine.Update(a)
+	return d, err
 }
 
 func (a *Account) ReadDevice(device *Device) (*Device, error) {
@@ -23,8 +41,9 @@ func (a *Account) ReadDevice(device *Device) (*Device, error) {
 }
 
 func (a *Account) UpdateDevice(device *Device) (*Device, error) {
-	return nil, nil
-
+	entity, err := dataStorage.engine.Update(device)
+	d := entity.(*Device)
+	return d, err
 }
 
 func (a *Account) DeleteDevice(device *Device) error {

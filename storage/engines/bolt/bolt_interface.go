@@ -12,6 +12,22 @@ import (
 	"github.com/mguzelevich/sauron/storage"
 )
 
+func (s StorageBolt) Create(e storage.Entity) (storage.Entity, error) {
+	return e, nil
+}
+
+func (s StorageBolt) Read(e storage.Entity) (storage.Entity, error) {
+	return e, nil
+}
+
+func (s StorageBolt) Update(e storage.Entity) (storage.Entity, error) {
+	return e, nil
+}
+
+func (s StorageBolt) Delete(e storage.Entity) error {
+	return nil
+}
+
 func (s StorageBolt) Accounts() ([]*storage.Account, error) {
 	accounts := []*storage.Account{}
 	log.Debug.Printf("accounts")

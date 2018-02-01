@@ -8,6 +8,68 @@ import (
 	"github.com/mguzelevich/sauron/storage"
 )
 
+func mapByType(e storage.Entity) (string, error) {
+	m := map[string]string{
+		"Account": "accounts",
+		"Device":  "devices",
+	}
+	mapKey, ok := m[e.Type()]
+	if !ok {
+		return "", storage.ErrCollectionNotFound
+	}
+	return mapKey, nil
+}
+
+func (s StorageMemory) Create(e storage.Entity) (storage.Entity, error) {
+	key, err := mapByType(e)
+	if err != nil {
+		return e, err
+	}
+	buff, _ := json.Marshal(e)
+	s.db[key][e.Pk()] = string(buff)
+	return e, nil
+}
+
+func (s StorageMemory) Read(e storage.Entity) (storage.Entity, error) {
+	key, err := mapByType(e)
+	if err != nil {
+		return e, err
+	}
+	data, ok := s.db[key][e.Pk()]
+	if !ok {
+		return e, storage.ErrEntityNotFound
+	}
+	err = json.Unmarshal([]byte(data), e)
+	return e, nil
+}
+
+func (s StorageMemory) Update(e storage.Entity) (storage.Entity, error) {
+	key, err := mapByType(e)
+	if err != nil {
+		return e, err
+	}
+
+	buff, _ := json.Marshal(e)
+
+	e, err = s.Read(e)
+	if err != nil {
+		return e, err
+	}
+
+	err = json.Unmarshal(buff, &e)
+	if err != nil {
+		return e, err
+	}
+
+	buff, _ = json.Marshal(e)
+	s.db[key][e.Pk()] = string(buff)
+	return e, nil
+}
+
+func (s StorageMemory) Delete(e storage.Entity) error {
+	return nil
+}
+
 func (s StorageMemory) Accounts() ([]*storage.Account, error) {
 	accounts := []*storage.Account{}
 	log.Debug.Printf("accounts")
