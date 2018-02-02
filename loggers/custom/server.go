@@ -11,7 +11,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mguzelevich/go-log"
-	"github.com/mguzelevich/sauron/storage"
+
+	"github.com/mguzelevich/sauron/loggers"
 )
 
 type Server struct {
@@ -19,64 +20,11 @@ type Server struct {
 	server   *http.Server
 	doneChan chan bool
 
-	processTelemetryChan chan string
+	logger *loggers.Logger
 }
 
 func (s Server) DoneChan() chan bool {
 	return s.doneChan
-}
-
-func (s *Server) processLoop() {
-	for raw := range s.processTelemetryChan {
-		msg := &message{}
-		if err := msg.ParseCustomUrl(raw); err != nil {
-			log.Error.Printf("parse packet [%q] error [%s]", raw, err)
-			continue
-		}
-		/*
-			получить хеш девайса из телеметрии
-			true:
-				получить инстанс девайса из стораджа
-				получить инстанс аккаунта
-			false:
-				создать инстанс девайса
-				приааттачить к анонимусу (создать новый аккаунт)
-
-			получить инстанс девайса из аккаунта
-			записать телеметрию в девайс
-		*/
-
-		/*
-			получить хеш девайса из телеметрии
-			получить инстанс девайса из аккаунта
-			записать телеметрию в девайс
-		*/
-
-		account := &storage.Account{}
-
-		device, err := storage.GetDevice(&storage.Device{Id: msg.device().Hash()})
-		if err != nil {
-			switch err {
-			case storage.ErrEntityNotFound:
-				device, _ = account.CreateDevice(device)
-			default:
-				panic(err)
-			}
-		}
-
-		account, err = storage.ReadAccount(&storage.Account{Id: device.UserId})
-		if err != nil {
-			switch err {
-			case storage.ErrEntityNotFound:
-				account, _ = storage.CreateAccount(account)
-			default:
-				panic(err)
-			}
-		}
-
-		//account, _ := storage.ReadAccount(&storage.Account{Id: device.UserId})
-		device.AddTelemetry(msg.telemetry())
-	}
 }
 
 func (s *Server) ListenAndServe(shutdownChan chan bool) {
@@ -133,16 +81,23 @@ func (s *Server) logLocationHandler(w http.ResponseWriter, r *http.Request) {
 		raw := string(body)
 		log.Stderr.Printf("[%s] http: [%q]", timestamp, raw)
 		w.WriteHeader(http.StatusOK)
-		s.processTelemetryChan <- raw
+		s.logger.Log(raw)
 	}
+}
+
+func parse(raw string) (loggers.Message, error) {
+	msg := message{}
+	if err := msg.ParseRaw(raw); err != nil {
+		return nil, err
+	}
+	return msg, nil
 }
 
 func New(addr string) *Server {
 	server := &Server{
-		addr:                 addr,
-		doneChan:             make(chan bool),
-		processTelemetryChan: make(chan string),
+		addr:     addr,
+		doneChan: make(chan bool),
+		logger:   loggers.New(parse),
 	}
-	go server.processLoop()
 	return server
 }

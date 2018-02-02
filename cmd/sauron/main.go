@@ -126,7 +126,7 @@ func main() {
 	go customServer.ListenAndServe(shutdownChan)
 
 	opengtsServer := opengts.New(udpServerAddr)
-	go opengtsServer.ListenAndServeUdp(shutdownChan)
+	go opengtsServer.ListenAndServe(shutdownChan)
 
 	uiServer := ui.New(uiServerAddr)
 	go uiServer.ListenAndServe(shutdownChan)

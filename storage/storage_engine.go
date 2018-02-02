@@ -13,7 +13,7 @@ type StorageEngine interface {
 	Create(e Entity) (Entity, error)
 	Read(e Entity) (Entity, error)
 	Update(e Entity) (Entity, error)
-	Delete(e Entity) error
+	Delete(e Entity) (Entity, error)
 
 	// Accounts - return all accounts
 	Accounts() ([]*Account, error)

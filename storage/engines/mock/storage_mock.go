@@ -8,7 +8,7 @@ type StorageMock struct {
 }
 
 func (s StorageMock) Meta() (*storage.MetaInfo, error) {
-	return &MetaInfo{}, nil
+	return &storage.MetaInfo{}, nil
 }
 
 func (s StorageMock) Accounts() []string {

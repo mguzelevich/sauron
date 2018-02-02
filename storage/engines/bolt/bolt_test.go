@@ -6,33 +6,23 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
+	// "time"
 
-	"github.com/boltdb/bolt"
+	"github.com/mguzelevich/sauron/storage"
 )
 
-var storage *StorageBolt
+var engine storage.StorageEngine
 
 func TestStorageBolt_init(t *testing.T) {
-	meta, err := Storage.Meta()
+	var meta *storage.MetaInfo
+
+	boltDb := engine.(*StorageBolt)
+	meta, err := boltDb.Meta()
 	if err != nil {
 		t.Error(err)
 	}
 	if meta.Version != "0.1" {
 		t.Error("incorrect version", meta)
-	}
-}
-
-func TestStorageBolt_SaveTelemetry(t *testing.T) {
-	timestamp := time.Now().UTC()
-	telemetry := &Telemetry{
-		Timestamp: &timestamp,
-	}
-	f := func(tx *bolt.Tx) error {
-		return storage.saveTelemetry(tx, telemetry)
-	}
-	if err := storage.db.Update(f); err != nil {
-		t.Error(err)
 	}
 }
 
@@ -47,14 +37,14 @@ func setup() string {
 	tmpDbFilename := filepath.Join(tmpDir, "tmpdb.db")
 
 	shutdownChan := make(chan bool)
-	storageBolt, err := NewBolt(tmpDbFilename, shutdownChan)
+
+	storageBolt, err := New(map[string]string{"filename": tmpDbFilename}, shutdownChan)
 	if err != nil {
 		shutdown(tmpDir)
 		fmt.Fprintf(os.Stderr, "setup() storage init error %v\n", err)
 		os.Exit(1)
 	}
-	storage = storageBolt
-	Storage = storageBolt
+	engine = storageBolt
 	return tmpDir
 }
 

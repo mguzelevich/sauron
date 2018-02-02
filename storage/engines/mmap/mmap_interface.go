@@ -21,21 +21,27 @@ func mapByType(e storage.Entity) (string, error) {
 }
 
 func (s StorageMemory) Create(e storage.Entity) (storage.Entity, error) {
+	log.Trace.Printf("Create %v: %v", e.Type(), e)
 	key, err := mapByType(e)
 	if err != nil {
 		return e, err
 	}
+	pk := e.Pk()
 	buff, _ := json.Marshal(e)
-	s.db[key][e.Pk()] = string(buff)
+	s.db[key][pk] = string(buff)
+
+	s.DumpCollection(e)
 	return e, nil
 }
 
 func (s StorageMemory) Read(e storage.Entity) (storage.Entity, error) {
+	log.Trace.Printf("Read %v: %v", e.Type(), e)
 	key, err := mapByType(e)
 	if err != nil {
 		return e, err
 	}
-	data, ok := s.db[key][e.Pk()]
+	pk := e.Pk()
+	data, ok := s.db[key][pk]
 	if !ok {
 		return e, storage.ErrEntityNotFound
 	}
@@ -44,11 +50,12 @@ func (s StorageMemory) Read(e storage.Entity) (storage.Entity, error) {
 }
 
 func (s StorageMemory) Update(e storage.Entity) (storage.Entity, error) {
+	log.Debug.Printf("Update %v: %v", e.Type(), e)
 	key, err := mapByType(e)
 	if err != nil {
 		return e, err
 	}
-
+	pk := e.Pk()
 	buff, _ := json.Marshal(e)
 
 	e, err = s.Read(e)
@@ -62,12 +69,33 @@ func (s StorageMemory) Update(e storage.Entity) (storage.Entity, error) {
 	}
 
 	buff, _ = json.Marshal(e)
-	s.db[key][e.Pk()] = string(buff)
+	s.db[key][pk] = string(buff)
 	return e, nil
 }
 
-func (s StorageMemory) Delete(e storage.Entity) error {
-	return nil
+func (s StorageMemory) Delete(e storage.Entity) (storage.Entity, error) {
+	log.Trace.Printf("Delete %v: %v", e.Type(), e)
+	key, err := mapByType(e)
+	if err != nil {
+		return e, err
+	}
+	pk := e.Pk()
+	if _, ok := s.db[key][pk]; !ok {
+		return e, storage.ErrEntityNotFound
+	} else {
+		delete(s.db[key], pk)
+	}
+	return nil, nil
+}
+
+func (s StorageMemory) DumpCollection(e storage.Entity) (string, error) {
+	key, err := mapByType(e)
+	if err != nil {
+		return "{}", err
+	}
+	buff, _ := json.Marshal(s.db[key])
+	log.Debug.Printf("Dump %v: %v", e.Type(), string(buff))
+	return string(buff), nil
 }
 
 func (s StorageMemory) Accounts() ([]*storage.Account, error) {
@@ -80,21 +108,6 @@ func (s StorageMemory) Accounts() ([]*storage.Account, error) {
 	return accounts, nil
 }
 
-func (s StorageMemory) CreateAccount(account *storage.Account) (*storage.Account, error) {
-	buff, _ := json.Marshal(account)
-	s.db["accounts"][account.Id] = string(buff)
-	return account, nil
-}
-
-func (s StorageMemory) ReadAccount(account *storage.Account) (*storage.Account, error) {
-	data, ok := s.db["accounts"][account.Id]
-	if !ok {
-		return account, storage.ErrEntityNotFound
-	}
-	err := json.Unmarshal([]byte(data), account)
-	return account, err
-}
-
 func (s StorageMemory) GetDevice(device *storage.Device) (*storage.Device, error) {
 	data, ok := s.db["devices"][device.Id]
 	if !ok {
@@ -105,7 +118,8 @@ func (s StorageMemory) GetDevice(device *storage.Device) (*storage.Device, error
 }
 
 func (s StorageMemory) ReadDevice(account *storage.Account, device *storage.Device) (*storage.Device, error) {
-	account, err := s.ReadAccount(account)
+	e, err := s.Read(account)
+	account = e.(*storage.Account)
 	if err != nil {
 		return device, err
 	}

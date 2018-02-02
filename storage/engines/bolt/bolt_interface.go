@@ -24,8 +24,8 @@ func (s StorageBolt) Update(e storage.Entity) (storage.Entity, error) {
 	return e, nil
 }
 
-func (s StorageBolt) Delete(e storage.Entity) error {
-	return nil
+func (s StorageBolt) Delete(e storage.Entity) (storage.Entity, error) {
+	return e, nil
 }
 
 func (s StorageBolt) Accounts() ([]*storage.Account, error) {

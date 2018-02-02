@@ -36,7 +36,7 @@ type message struct {
 		Longitude float64 // lon=%LON
 		Altitude  float64 // alt=%ALT
 	}
-	Device struct {
+	device struct {
 		Battery   string // battery=%BATT
 		AndroidId string // androidId=%AID
 		Serial    string // serial=%SER
@@ -56,7 +56,7 @@ type message struct {
 	// Epoch    string `json:"epoch,omitempty"`    // epoch=%TIMESTAMP"
 }
 
-func (m *message) ParseCustomUrl(p string) error {
+func (m *message) ParseRaw(p string) error {
 	if values, err := url.ParseQuery(p); err != nil {
 		return err
 	} else {
@@ -71,9 +71,9 @@ func (m *message) ParseCustomUrl(p string) error {
 		m.Location.Longitude = lon
 		m.Location.Altitude = alt
 
-		m.Device.Battery = values.Get("batt")
-		m.Device.AndroidId = values.Get("aid")
-		m.Device.Serial = values.Get("ser")
+		m.device.Battery = values.Get("batt")
+		m.device.AndroidId = values.Get("aid")
+		m.device.Serial = values.Get("ser")
 
 		m.Gps.Satellites = values.Get("sat")
 		m.Gps.Accuracy = values.Get("acc")
@@ -90,16 +90,16 @@ func (m *message) ParseCustomUrl(p string) error {
 	return nil
 }
 
-func (m *message) telemetry() *storage.Telemetry {
+func (m message) Telemetry() *storage.Telemetry {
 	return &storage.Telemetry{
 		Timestamp: m.Timestamp,
 	}
 }
 
-func (m *message) device() *storage.Device {
+func (m message) Device() *storage.Device {
 	return &storage.Device{
-		AndroidId: m.Device.AndroidId,
-		Serial:    m.Device.Serial,
+		AndroidId: m.device.AndroidId,
+		Serial:    m.device.Serial,
 	}
 }
 

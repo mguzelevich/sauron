@@ -1,15 +1,29 @@
 package opengts
 
 import (
-	//"context"
 	"net"
 	"strings"
 	"time"
 
 	"github.com/mguzelevich/go-log"
+
+	"github.com/mguzelevich/sauron/loggers"
 )
 
-func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
+type Server struct {
+	// server   *http.Server
+
+	addr     string
+	doneChan chan bool
+
+	logger *loggers.Logger
+}
+
+func (s Server) DoneChan() chan bool {
+	return s.doneChan
+}
+
+func (s *Server) ListenAndServe(shutdownChan chan bool) {
 	/* Lets prepare a address at any address at port 10001*/
 	udpAddr, err := net.ResolveUDPAddr("udp", s.addr)
 	if err != nil {
@@ -37,13 +51,7 @@ func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
 				timestamp := time.Now().UTC().Format(time.RFC3339)
 				raw := strings.TrimSpace(string(buf[0:n]))
 				log.Stderr.Printf("[%s] udp[%s]: [%q]", timestamp, srcAddr, raw)
-
-				msg := udpMessage{}
-				if err := msg.ParseUdpPacket(raw); err != nil {
-					log.Error.Printf("parse packet [%q] error [%s]", raw, err)
-					continue
-				}
-				s.processMsgChan <- msg
+				s.logger.Log(raw)
 			}
 		}
 	}()
@@ -55,4 +63,21 @@ func (s *Server) ListenAndServeUdp(shutdownChan chan bool) {
 	close(closeChan)
 	log.Info.Printf("opengts udp logging server gracefully stopped\n")
 	s.doneChan <- true
+}
+
+func parse(raw string) (loggers.Message, error) {
+	msg := udpMessage{}
+	if err := msg.ParseRaw(raw); err != nil {
+		return nil, err
+	}
+	return msg, nil
+}
+
+func New(addr string) *Server {
+	server := &Server{
+		addr:     addr,
+		doneChan: make(chan bool),
+		logger:   loggers.New(parse),
+	}
+	return server
 }

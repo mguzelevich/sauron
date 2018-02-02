@@ -15,7 +15,7 @@ type udpMessage struct {
 	Latitude  float64
 	Longitude float64
 
-	Device struct {
+	device struct {
 		AndroidId string // androidId=%AID
 		Serial    string // serial=%SER
 	}
@@ -29,7 +29,7 @@ type udpMessage struct {
 	}
 }
 
-func (m *udpMessage) ParseUdpPacket(p string) error {
+func (m *udpMessage) ParseRaw(p string) error {
 	// data := "mgu/mi5s/$GPRMC,083543,A,5355.67728,N,2738.62654,E,0.000000,0.000000,050118,,*2E"
 	packet := strings.Split(p, "/")
 	//account := packet[0]
@@ -54,8 +54,8 @@ func (m *udpMessage) ParseUdpPacket(p string) error {
 	m.Longitude = lon
 	// Altitude:  rmc.Altitude,
 
-	m.Device.AndroidId = packet[0]
-	m.Device.Serial = packet[1]
+	m.device.AndroidId = packet[0]
+	m.device.Serial = packet[1]
 
 	// m.Gps = Gps{
 	// 	Satellites: values.Get("sat"),
@@ -67,15 +67,15 @@ func (m *udpMessage) ParseUdpPacket(p string) error {
 	return nil
 }
 
-func (m *udpMessage) telemetry() *storage.Telemetry {
+func (m udpMessage) Telemetry() *storage.Telemetry {
 	return &storage.Telemetry{
 		Timestamp: m.Timestamp,
 	}
 }
 
-func (m *udpMessage) device() *storage.Device {
+func (m udpMessage) Device() *storage.Device {
 	return &storage.Device{
-		AndroidId: m.Device.AndroidId,
-		Serial:    m.Device.Serial,
+		AndroidId: m.device.AndroidId,
+		Serial:    m.device.Serial,
 	}
 }

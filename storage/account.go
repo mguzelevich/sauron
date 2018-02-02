@@ -1,13 +1,13 @@
 package storage
 
 import (
-//	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go-log"
 )
 
 type Account struct {
-	Id        string    `json:"id"`
-	FirstName string    `json:"first_name"`
-	Devices   []*Device `json:"devices"`
+	Id        string   `json:"id"`
+	FirstName string   `json:"first_name"`
+	Devices   []string `json:"devices"`
 }
 
 func (a Account) Type() string {
@@ -27,9 +27,11 @@ func (a *Account) GetDevices() []*Device {
 }
 
 func (a *Account) CreateDevice(device *Device) (*Device, error) {
+	log.Debug.Printf("create device %v -> %v", a, device)
+	device.Id = device.Pk()
 	entity, err := dataStorage.engine.Create(device)
 	d := entity.(*Device)
-	a.Devices = append(a.Devices, d)
+	a.Devices = append(a.Devices, device.Id)
 
 	_, err = dataStorage.engine.Update(a)
 	return d, err

@@ -78,31 +78,29 @@ func Accounts() ([]*Account, error) {
 }
 
 func CreateAccount(account *Account) (*Account, error) {
+	account.Id = account.Pk()
 	entity, err := dataStorage.engine.Create(account)
-	a := entity.(*Account)
-	return a, err
+	return entity.(*Account), err
 }
 
 func ReadAccount(account *Account) (*Account, error) {
 	entity, err := dataStorage.engine.Read(account)
-	a := entity.(*Account)
-	return a, err
+	return entity.(*Account), err
 }
 
 func UpdateAccount(account *Account) (*Account, error) {
 	entity, err := dataStorage.engine.Update(account)
-	a := entity.(*Account)
-	return a, err
+	return entity.(*Account), err
 }
 
 func DeleteAccount(account *Account) error {
-	err := dataStorage.engine.Delete(account)
+	_, err := dataStorage.engine.Delete(account)
 	return err
 }
 
 func GetDevice(device *Device) (*Device, error) {
-	device, err := dataStorage.engine.GetDevice(device)
-	return device, err
+	entity, err := dataStorage.engine.Read(device)
+	return entity.(*Device), err
 }
 
 func init() {
