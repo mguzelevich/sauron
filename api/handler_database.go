@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 	"github.com/mguzelevich/sauron/storage"
 )
 

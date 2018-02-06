@@ -35,8 +35,8 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/mguzelevich/go-log"
+  name = "github.com/mguzelevich/go.log"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/mguzelevich/go-nmea"
+  name = "github.com/mguzelevich/go.nmea"

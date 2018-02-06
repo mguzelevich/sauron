@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mguzelevich/go-nmea"
+	"github.com/mguzelevich/go.nmea"
 
 	"github.com/mguzelevich/sauron/storage"
 )

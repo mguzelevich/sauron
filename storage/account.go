@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 )
 
 type Account struct {

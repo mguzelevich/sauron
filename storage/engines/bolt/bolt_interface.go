@@ -7,7 +7,7 @@ import (
 	// "time"
 
 	"github.com/boltdb/bolt"
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 
 	"github.com/mguzelevich/sauron/storage"
 )

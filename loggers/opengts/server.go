@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 
 	"github.com/mguzelevich/sauron/loggers"
 )

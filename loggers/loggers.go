@@ -1,7 +1,7 @@
 package loggers
 
 import (
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 
 	"github.com/mguzelevich/sauron/storage"
 )

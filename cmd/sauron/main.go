@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 
 	"github.com/mguzelevich/sauron/api"
 	"github.com/mguzelevich/sauron/loggers/custom"

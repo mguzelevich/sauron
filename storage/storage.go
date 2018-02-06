@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 )
 
 var (

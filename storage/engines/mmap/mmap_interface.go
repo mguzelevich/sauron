@@ -3,7 +3,7 @@ package mmap
 import (
 	"encoding/json"
 
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 
 	"github.com/mguzelevich/sauron/storage"
 )

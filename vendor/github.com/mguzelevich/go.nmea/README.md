@@ -1,4 +1,4 @@
-# go-nmea [![GoDoc](https://godoc.org/github.com/mguzelevich/go-nmea?status.svg)](http://godoc.org/github.com/mguzelevich/go-nmea) [![Build Status](https://travis-ci.org/mguzelevich/go-nmea.svg?branch=master)](https://travis-ci.org/mguzelevich/go-nmea)
+# go.nmea [![GoDoc](https://godoc.org/github.com/mguzelevich/go.nmea?status.svg)](http://godoc.org/github.com/mguzelevich/go.nmea) [![Build Status](https://travis-ci.org/mguzelevich/go.nmea.svg?branch=master)](https://travis-ci.org/mguzelevich/go.nmea)
 
 nmea protocol parser
 
@@ -9,7 +9,7 @@ nmea protocol parser
 import (
 	"fmt"
 
-	"github.com/mguzelevich/go-nmea"
+	"github.com/mguzelevich/go.nmea"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-# go-log [![Build Status](https://travis-ci.org/mguzelevich/go-log.svg?branch=master)](https://travis-ci.org/mguzelevich/go-log)
+# go.log [![GoDoc](https://godoc.org/github.com/mguzelevich/go.log?status.svg)](http://godoc.org/github.com/mguzelevich/go.log) [![Build Status](https://travis-ci.org/mguzelevich/go.log.svg?branch=master)](https://travis-ci.org/mguzelevich/go.log)
 
 
 go logger wrapper
@@ -14,7 +14,7 @@ init:
 import (
 	"os"
 
-	"github.com/mguzelevich/go-log"
+	"github.com/mguzelevich/go.log"
 )
 
 func main() {
