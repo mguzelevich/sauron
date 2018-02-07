@@ -68,39 +68,29 @@ func Init(engineFabric func(params map[string]string, shutdownChan chan bool) (S
 	return dataStorage
 }
 
-func Dump() {
+func DumpAll() ([]byte, error) {
+	return dataStorage.engine.DumpAll()
+}
 
+func Create(e Entity) (Entity, error) {
+	return dataStorage.engine.Create(e)
+}
+
+func Read(e Entity) (Entity, error) {
+	return dataStorage.engine.Read(e)
+}
+
+func Update(e Entity) (Entity, error) {
+	return dataStorage.engine.Update(e)
+}
+
+func Delete(e Entity) (Entity, error) {
+	return dataStorage.engine.Delete(e)
 }
 
 func Accounts() ([]*Account, error) {
 	accounts, err := dataStorage.engine.Accounts()
 	return accounts, err
-}
-
-func CreateAccount(account *Account) (*Account, error) {
-	account.Id = account.Pk()
-	entity, err := dataStorage.engine.Create(account)
-	return entity.(*Account), err
-}
-
-func ReadAccount(account *Account) (*Account, error) {
-	entity, err := dataStorage.engine.Read(account)
-	return entity.(*Account), err
-}
-
-func UpdateAccount(account *Account) (*Account, error) {
-	entity, err := dataStorage.engine.Update(account)
-	return entity.(*Account), err
-}
-
-func DeleteAccount(account *Account) error {
-	_, err := dataStorage.engine.Delete(account)
-	return err
-}
-
-func GetDevice(device *Device) (*Device, error) {
-	entity, err := dataStorage.engine.Read(device)
-	return entity.(*Device), err
 }
 
 func init() {

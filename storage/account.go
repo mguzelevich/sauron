@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"encoding/json"
+
 	"github.com/mguzelevich/go.log"
 )
 
@@ -22,24 +24,35 @@ func (a Account) Pk() string {
 	return a.Id
 }
 
+func (a *Account) MarshalJSON() ([]byte, error) {
+	a.Id = a.Pk()
+
+	type alias Account
+	return json.Marshal(&struct {
+		*alias
+	}{
+		alias: (*alias)(a),
+	})
+}
+
 func (a *Account) GetDevices() []*Device {
 	return nil
 }
 
 func (a *Account) CreateDevice(device *Device) (*Device, error) {
 	log.Debug.Printf("create device %v -> %v", a, device)
-	device.Id = device.Pk()
+	device.UserId = a.Pk()
 	entity, err := dataStorage.engine.Create(device)
 	d := entity.(*Device)
-	a.Devices = append(a.Devices, device.Id)
+	a.Devices = append(a.Devices, device.Pk())
 
 	_, err = dataStorage.engine.Update(a)
 	return d, err
 }
 
-func (a *Account) ReadDevice(device *Device) (*Device, error) {
-	device, err := dataStorage.engine.ReadDevice(a, device)
-	return device, err
+func (a *Account) Device(device *Device) (*Device, error) {
+	entity, err := dataStorage.engine.Read(device)
+	return entity.(*Device), err
 }
 
 func (a *Account) UpdateDevice(device *Device) (*Device, error) {
@@ -49,5 +62,12 @@ func (a *Account) UpdateDevice(device *Device) (*Device, error) {
 }
 
 func (a *Account) DeleteDevice(device *Device) error {
-	return nil
+	for i := range a.Devices {
+		if a.Devices[i] == device.Pk() {
+			a.Devices[i] = a.Devices[len(a.Devices)-1]
+			a.Devices = a.Devices[:len(a.Devices)-1]
+			return nil
+		}
+	}
+	return ErrEntityNotFound
 }

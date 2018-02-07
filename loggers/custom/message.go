@@ -31,24 +31,19 @@ type message struct {
 	Timestamp *time.Time // time=%TIME
 	Provider  string     // prov=%PROV
 
-	Location struct {
-		Latitude  float64 // lat=%LAT
-		Longitude float64 // lon=%LON
-		Altitude  float64 // alt=%ALT
-	}
-	device struct {
-		Battery   string // battery=%BATT
-		AndroidId string // androidId=%AID
-		Serial    string // serial=%SER
-	}
-	Gps struct {
-		Satellites string // sat=%SAT
-		Accuracy   string // acc=%ACC
-	}
-	Vehicle struct {
-		Speed     float64 // spd=%SPD
-		Direction float64 // dir=%DIR
-	}
+	Latitude  float64 // lat=%LAT
+	Longitude float64 // lon=%LON
+	Altitude  float64 // alt=%ALT
+
+	Battery   string // battery=%BATT
+	AndroidId string // androidId=%AID
+	Serial    string // serial=%SER
+
+	Satellites string // sat=%SAT
+	Accuracy   string // acc=%ACC
+
+	Speed     float64 // spd=%SPD
+	Direction float64 // dir=%DIR
 
 	Annotation string // desc=%DESC
 
@@ -67,22 +62,22 @@ func (m *message) ParseRaw(p string) error {
 		lon, _ := strconv.ParseFloat(values.Get("lon"), 64)
 		alt, _ := strconv.ParseFloat(values.Get("alt"), 64)
 
-		m.Location.Latitude = lat
-		m.Location.Longitude = lon
-		m.Location.Altitude = alt
+		m.Latitude = lat
+		m.Longitude = lon
+		m.Altitude = alt
 
-		m.device.Battery = values.Get("batt")
-		m.device.AndroidId = values.Get("aid")
-		m.device.Serial = values.Get("ser")
+		m.Battery = values.Get("batt")
+		m.AndroidId = values.Get("aid")
+		m.Serial = values.Get("ser")
 
-		m.Gps.Satellites = values.Get("sat")
-		m.Gps.Accuracy = values.Get("acc")
+		m.Satellites = values.Get("sat")
+		m.Accuracy = values.Get("acc")
 
 		speed, _ := strconv.ParseFloat(values.Get("spd"), 64)
 		direction, _ := strconv.ParseFloat(values.Get("dir"), 64)
 
-		m.Vehicle.Speed = speed
-		m.Vehicle.Direction = direction
+		m.Speed = speed
+		m.Direction = direction
 
 		m.Annotation = values.Get("desc")
 		m.Activity = values.Get("act")
@@ -91,15 +86,33 @@ func (m *message) ParseRaw(p string) error {
 }
 
 func (m message) Telemetry() *storage.Telemetry {
-	return &storage.Telemetry{
+	t := &storage.Telemetry{
 		Timestamp: m.Timestamp,
+		Provider:  m.Provider,
+		Location: storage.Location{
+			Latitude:  m.Latitude,
+			Longitude: m.Longitude,
+			Altitude:  m.Altitude,
+		},
+
+		Annotation: m.Annotation,
+		Activity:   m.Activity,
 	}
+
+	// t.Device.Id:
+	t.Device.Battery = m.Battery
+	t.Gps.Satellites = m.Satellites
+	t.Gps.Accuracy = m.Accuracy
+	t.Vehicle.Speed = m.Speed
+	t.Vehicle.Direction = m.Direction
+
+	return t
 }
 
 func (m message) Device() *storage.Device {
 	return &storage.Device{
-		AndroidId: m.device.AndroidId,
-		Serial:    m.device.Serial,
+		AndroidId: m.AndroidId,
+		Serial:    m.Serial,
 	}
 }
 

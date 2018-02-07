@@ -15,32 +15,17 @@ type StorageEngine interface {
 	Update(e Entity) (Entity, error)
 	Delete(e Entity) (Entity, error)
 
+	// DumpAll - dump all data as json
+	DumpAll() ([]byte, error)
+
 	// Accounts - return all accounts
 	Accounts() ([]*Account, error)
-
-	// GetDevice - get device by device hash
-	GetDevice(d *Device) (*Device, error)
-
-	// GetDevices
-	GetDevices(a *Account) []*Device
-
-	// CreateDevice
-	CreateDevice(a *Account, device *Device) (*Device, error)
-
-	// ReadDevice
-	ReadDevice(a *Account, device *Device) (*Device, error)
-
-	// UpdateDevice
-	// UpdateDevice(a *Account, device *Device) (*Device, error)
-
-	// DeleteDevice
-	// DeleteDevice(a *Account, device *Device) error
 
 	// Telemetry
 	// Telemetry(d *Device) ([]*Telemetry, error)
 
 	// AddTelemetry
-	// AddTelemetry(d *Device, telemetry *Telemetry) error
+	AddTelemetry(d *Device, telemetry *Telemetry) error
 
 	// Add
 	// Add(t *TelemetryStorage, telemetry *Telemetry)

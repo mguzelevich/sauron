@@ -2,6 +2,7 @@ package mmap
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type StorageMemory struct {
-	db map[string]map[string]string
+	db map[string]map[string]json.RawMessage
 
 	doneChan chan bool
 }
@@ -23,13 +24,18 @@ func (s StorageMemory) DoneChan() chan bool {
 func (s *StorageMemory) shutdownLoop(shutdownChan chan bool) {
 	<-shutdownChan
 	// s.db.Close()
+	if d, err := s.dump(); err != nil {
+		log.Error.Printf("mmem storage dump error %v", err)
+	} else {
+		log.Stdout.Printf("%v", string(d))
+	}
 	log.Info.Printf("mmem storage engine gracefully stopped")
-	s.dump()
 	close(s.doneChan)
 }
 
 func (s *StorageMemory) initSchema() error {
-	timestamp := time.Now().UTC().Format("20060102")
+	//timestamp := time.Now().UTC().Format("20060102")
+	timestamp := fmt.Sprintf("\"%s\"", time.Now().UTC().Format(time.RFC3339))
 
 	s.initBuckets()
 
@@ -45,7 +51,7 @@ func (s *StorageMemory) initSchema() error {
 
 	for _, r := range meta {
 		key := strings.Join(r.bucket, "/")
-		s.db[key][r.key] = r.value
+		s.db[key][r.key] = json.RawMessage(r.value)
 	}
 	return nil
 }
@@ -59,25 +65,21 @@ func (s *StorageMemory) initBuckets() error {
 	}
 	for _, names := range buckets {
 		key := strings.Join(names, "/")
-		s.db[key] = make(map[string]string)
+		s.db[key] = make(map[string]json.RawMessage)
 	}
 	return nil
 }
 
-func (s *StorageMemory) dump() error {
-	if buff, err := json.Marshal(s.db); err != nil {
-		log.Error.Printf("mmem storage dump error %v", err)
-	} else {
-		log.Stdout.Printf("%v", string(buff))
-	}
-	return nil
+func (s *StorageMemory) dump() ([]byte, error) {
+	buff, err := json.Marshal(s.db)
+	return buff, err
 }
 
 // https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully
 
 func New(params map[string]string, shutdownChan chan bool) (storage.StorageEngine, error) {
 	storage := &StorageMemory{
-		db:       make(map[string]map[string]string),
+		db:       make(map[string]map[string]json.RawMessage),
 		doneChan: make(chan bool),
 	}
 

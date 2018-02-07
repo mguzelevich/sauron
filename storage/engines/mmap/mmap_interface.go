@@ -2,6 +2,7 @@ package mmap
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/mguzelevich/go.log"
 
@@ -28,9 +29,9 @@ func (s StorageMemory) Create(e storage.Entity) (storage.Entity, error) {
 	}
 	pk := e.Pk()
 	buff, _ := json.Marshal(e)
-	s.db[key][pk] = string(buff)
+	s.db[key][pk] = json.RawMessage(buff)
 
-	s.DumpCollection(e)
+	// s.DumpCollection(e)
 	return e, nil
 }
 
@@ -69,7 +70,7 @@ func (s StorageMemory) Update(e storage.Entity) (storage.Entity, error) {
 	}
 
 	buff, _ = json.Marshal(e)
-	s.db[key][pk] = string(buff)
+	s.db[key][pk] = json.RawMessage(buff)
 	return e, nil
 }
 
@@ -93,52 +94,44 @@ func (s StorageMemory) DumpCollection(e storage.Entity) (string, error) {
 	if err != nil {
 		return "{}", err
 	}
-	buff, _ := json.Marshal(s.db[key])
-	log.Debug.Printf("Dump %v: %v", e.Type(), string(buff))
-	return string(buff), nil
+	buff, err := json.Marshal(s.db[key])
+	log.Debug.Printf("Dump %v: %v (%v)", e.Type(), string(buff), err)
+	return string(buff), err
+}
+
+func (s StorageMemory) DumpAll() ([]byte, error) {
+	return s.dump()
 }
 
 func (s StorageMemory) Accounts() ([]*storage.Account, error) {
+	key, err := mapByType(storage.Account{})
+	if err != nil {
+		return nil, err
+	}
+
 	accounts := []*storage.Account{}
-	log.Debug.Printf("accounts")
-	for k, v := range s.db["accounts"] {
-		log.Debug.Printf("account %s = %s", k, v)
-		accounts = append(accounts, &storage.Account{})
+	for k := range s.db[key] {
+		if entity, err := s.Read(&storage.Account{Id: k}); err != nil {
+			log.Error.Printf("read account %v error %v", k, err)
+		} else {
+			accounts = append(accounts, entity.(*storage.Account))
+		}
 	}
 	return accounts, nil
 }
 
-func (s StorageMemory) GetDevice(device *storage.Device) (*storage.Device, error) {
-	data, ok := s.db["devices"][device.Id]
-	if !ok {
-		return device, storage.ErrEntityNotFound
+func (s StorageMemory) AddTelemetry(d *storage.Device, telemetry *storage.Telemetry) error {
+	key := fmt.Sprintf("telemetry.%v", d.Pk())
+	log.Trace.Printf("AddTelemetry %v: %v: %v", d, key, telemetry)
+	telemetry.Device.Id = d.Pk()
+	if _, ok := s.db[key]; !ok {
+		s.db[key] = make(map[string]json.RawMessage)
 	}
-	err := json.Unmarshal([]byte(data), device)
-	return device, err
-}
-
-func (s StorageMemory) ReadDevice(account *storage.Account, device *storage.Device) (*storage.Device, error) {
-	e, err := s.Read(account)
-	account = e.(*storage.Account)
-	if err != nil {
-		return device, err
+	if buff, err := json.Marshal(telemetry); err != nil {
+		log.Error.Printf("save device %v telemetry %v error %v", d.Pk(), telemetry, err)
+	} else {
+		s.db[key][telemetry.Pk()] = json.RawMessage(buff)
+		// log.Error.Printf("save device %v telemetry [%v]", d.Pk(), string(buff))
 	}
-	device, err = s.GetDevice(device)
-	return device, err
-}
-
-func (s StorageMemory) CreateDevice(account *storage.Account, device *storage.Device) (*storage.Device, error) {
-	buff, _ := json.Marshal(device)
-	s.db["devices"][device.Id] = string(buff)
-	return device, nil
-}
-
-func (s StorageMemory) GetDevices(a *storage.Account) []*storage.Device {
-	devices := []*storage.Device{}
-	log.Debug.Printf("devices")
-	for k, v := range s.db["devices"] {
-		log.Debug.Printf("account %s = %s", k, v)
-		devices = append(devices, &storage.Device{Id: k})
-	}
-	return devices
+	return nil
 }

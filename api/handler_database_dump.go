@@ -2,7 +2,7 @@ package api
 
 import (
 	// "encoding/json"
-	// "fmt"
+	"fmt"
 	// "io/ioutil"
 	"net/http"
 
@@ -12,24 +12,27 @@ import (
 )
 
 func databaseDumpHandler(w http.ResponseWriter, r *http.Request) {
-	log.Trace.Printf("url: %s %s %d\n", r.Method, r.RequestURI, r.ContentLength)
+	type request struct {
+		format string
+	}
 
-	// body, err := ioutil.ReadAll(r.Body)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
+	// application/json
+	// application/gpx+xml
+	// application/vnd.geo+json
+
+	type response struct {
+	}
+
+	log.Trace.Printf("url: %s %s %d\n", r.Method, r.RequestURI, r.ContentLength)
 
 	w.Header().Set("Content-Type", "application/json")
 
-	log.Trace.Printf("dump")
-	storage.Dump()
+	dump, err := storage.DumpAll()
 
-	// if buff, err := json.Marshal(&accauntsResponse{Id: "taskId"}); err != nil {
-	// 	w.WriteHeader(http.StatusTeapot)
-	// } else {
-	// 	w.WriteHeader(http.StatusOK)
-	// 	fmt.Fprintf(w, string(buff))
-	// }
-
+	if err != nil {
+		w.WriteHeader(http.StatusTeapot)
+	} else {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, string(dump))
+	}
 }

@@ -15,18 +15,11 @@ type udpMessage struct {
 	Latitude  float64
 	Longitude float64
 
-	device struct {
-		AndroidId string // androidId=%AID
-		Serial    string // serial=%SER
-	}
-	Gps struct {
-		Satellites string // sat=%SAT
-		Accuracy   string // acc=%ACC
-	}
-	Vehicle struct {
-		Speed     float64 // spd=%SPD
-		Direction float64 // dir=%DIR
-	}
+	AndroidId string // androidId=%AID
+	Serial    string // serial=%SER
+
+	Speed     float64 // spd=%SPD
+	Direction float64 // dir=%DIR
 }
 
 func (m *udpMessage) ParseRaw(p string) error {
@@ -54,28 +47,41 @@ func (m *udpMessage) ParseRaw(p string) error {
 	m.Longitude = lon
 	// Altitude:  rmc.Altitude,
 
-	m.device.AndroidId = packet[0]
-	m.device.Serial = packet[1]
+	m.AndroidId = packet[0]
+	m.Serial = packet[1]
 
-	// m.Gps = Gps{
-	// 	Satellites: values.Get("sat"),
-	// 	Accuracy:   values.Get("acc"),
-	// }
-
-	m.Vehicle.Speed = rmc.Speed
-	m.Vehicle.Direction = rmc.Direction
+	m.Speed = rmc.Speed
+	m.Direction = rmc.Direction
 	return nil
 }
 
 func (m udpMessage) Telemetry() *storage.Telemetry {
-	return &storage.Telemetry{
+	t := &storage.Telemetry{
 		Timestamp: m.Timestamp,
+		// Provider:  m.Provider,
+		Location: storage.Location{
+			Latitude:  m.Latitude,
+			Longitude: m.Longitude,
+			// Altitude:  m.Altitude,
+		},
+
+		// Annotation: m.Annotation,
+		// Activity:   m.Activity,
 	}
+
+	// t.Device.Id:
+	// t.Device.Battery = m.Battery
+	// t.Gps.Satellites = m.Satellites
+	// t.Gps.Accuracy = m.Accuracy
+	t.Vehicle.Speed = m.Speed
+	t.Vehicle.Direction = m.Direction
+
+	return t
 }
 
 func (m udpMessage) Device() *storage.Device {
 	return &storage.Device{
-		AndroidId: m.device.AndroidId,
-		Serial:    m.device.Serial,
+		AndroidId: m.AndroidId,
+		Serial:    m.Serial,
 	}
 }

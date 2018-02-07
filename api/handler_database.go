@@ -38,12 +38,5 @@ func databaseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func dummyBodyHandler(w http.ResponseWriter, r *http.Request, body []byte) {
-	log.Trace.Printf("dump")
-	storage.Dump()
-	// if buff, err := json.Marshal(&accauntsResponse{Id: "taskId"}); err != nil {
-	// 	w.WriteHeader(http.StatusTeapot)
-	// } else {
-	// 	w.WriteHeader(http.StatusOK)
-	// 	fmt.Fprintf(w, string(buff))
-	// }
+	log.Trace.Printf("dummy")
 }

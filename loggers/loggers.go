@@ -64,19 +64,21 @@ func (l *Logger) save(msg Message) {
 
 	account := &storage.Account{}
 
-	device, err := storage.GetDevice(msg.Device())
+	entity, err := storage.Read(msg.Device())
+	device := entity.(*storage.Device)
 	if err != nil {
 		switch err {
 		case storage.ErrEntityNotFound:
-			account, err = storage.ReadAccount(account)
+			entity, err := storage.Read(account)
 			if err != nil {
 				switch err {
 				case storage.ErrEntityNotFound:
-					account, _ = storage.CreateAccount(account)
+					entity, err = storage.Create(account)
 				default:
 					panic(err)
 				}
 			}
+			account := entity.(*storage.Account)
 			device, _ = account.CreateDevice(device)
 		default:
 			panic(err)

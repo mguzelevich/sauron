@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -10,10 +12,8 @@ type Telemetry struct {
 
 	Location Location `json:"location"`
 	Device   struct {
-		Battery   string `json:"battery,omitempty"`   // battery=%BATT
-		Id        string `json:"deviceId,omitempty"`  //
-		AndroidId string `json:"androidId,omitempty"` // androidId=%AID
-		Serial    string `json:"serial,omitempty"`    // serial=%SER
+		Id      string `json:"id,omitempty"`      //
+		Battery string `json:"battery,omitempty"` // battery=%BATT
 	} `json:"device"`
 	Gps struct {
 		Satellites string `json:"sat,omitempty"` // sat=%SAT
@@ -28,4 +28,17 @@ type Telemetry struct {
 
 	Activity string `json:"activity,omitempty"` // activity=%ACT
 	// Epoch    string `json:"epoch,omitempty"`    // epoch=%TIMESTAMP"
+}
+
+type aliasTelemetry Telemetry
+
+func (t Telemetry) Type() string {
+	return "Telemetry"
+}
+
+func (t Telemetry) Pk() string {
+	buff, _ := json.Marshal(t.Timestamp)
+	//timestamp := time.Now().UTC().Format(time.RFC3339)
+	timestamp := string(buff)
+	return strings.Trim(timestamp, "\"")
 }

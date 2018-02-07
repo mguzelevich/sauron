@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"hash/crc32"
 	"strings"
@@ -26,12 +27,24 @@ func (d Device) Pk() string {
 	return d.Id
 }
 
+func (d *Device) MarshalJSON() ([]byte, error) {
+	d.Id = d.Pk()
+
+	type alias Device
+	return json.Marshal(&struct {
+		*alias
+	}{
+		alias: (*alias)(d),
+	})
+}
+
 func (d *Device) Telemetry() ([]*Telemetry, error) {
 	return nil, nil
 }
 
 func (d *Device) AddTelemetry(telemetry *Telemetry) error {
-	return nil
+	err := dataStorage.engine.AddTelemetry(d, telemetry)
+	return err
 }
 
 func (d *Device) Hash() string {

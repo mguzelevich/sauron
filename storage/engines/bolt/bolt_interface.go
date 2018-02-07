@@ -28,6 +28,10 @@ func (s StorageBolt) Delete(e storage.Entity) (storage.Entity, error) {
 	return e, nil
 }
 
+func (s StorageBolt) DumpAll() ([]byte, error) {
+	return nil, nil
+}
+
 func (s StorageBolt) Accounts() ([]*storage.Account, error) {
 	accounts := []*storage.Account{}
 	log.Debug.Printf("accounts")
@@ -46,27 +50,7 @@ func (s StorageBolt) Accounts() ([]*storage.Account, error) {
 	return accounts, nil
 }
 
-func (s StorageBolt) CreateAccount(account *storage.Account) (*storage.Account, error) {
-	return nil, nil
-}
-
-func (s StorageBolt) ReadAccount(account *storage.Account) (*storage.Account, error) {
-	return nil, nil
-}
-
-func (s StorageBolt) GetDevice(d *storage.Device) (*storage.Device, error) {
-	return nil, nil
-}
-
-func (s StorageBolt) CreateDevice(account *storage.Account, device *storage.Device) (*storage.Device, error) {
-	return device, nil
-}
-
-func (s StorageBolt) GetDevices(a *storage.Account) []*storage.Device {
-	devices := []*storage.Device{}
-	return devices
-}
-
-func (s StorageBolt) ReadDevice(account *storage.Account, device *storage.Device) (*storage.Device, error) {
-	return device, nil
+func (s StorageBolt) AddTelemetry(d *storage.Device, telemetry *storage.Telemetry) error {
+	log.Trace.Printf("AddTelemetry %v: %v", d, telemetry)
+	return nil
 }
