@@ -28,8 +28,10 @@ import (
   %FILENAME - summary_current_filename
 */
 type message struct {
-	Timestamp *time.Time // time=%TIME
-	Provider  string     // prov=%PROV
+	Timestamp *time.Time
+
+	OriginalTimestamp *time.Time // time=%TIME
+	Provider          string     // prov=%PROV
 
 	Latitude  float64 // lat=%LAT
 	Longitude float64 // lon=%LON
@@ -56,7 +58,7 @@ func (m *message) ParseRaw(p string) error {
 		return err
 	} else {
 		m.Provider = values.Get("prov")
-		m.Timestamp = parseTime(values.Get("time"))
+		m.OriginalTimestamp = parseTime(values.Get("ts"))
 
 		lat, _ := strconv.ParseFloat(values.Get("lat"), 64)
 		lon, _ := strconv.ParseFloat(values.Get("lon"), 64)
@@ -87,8 +89,9 @@ func (m *message) ParseRaw(p string) error {
 
 func (m message) Telemetry() *storage.Telemetry {
 	t := &storage.Telemetry{
-		Timestamp: m.Timestamp,
-		Provider:  m.Provider,
+		Timestamp:         m.Timestamp,
+		OriginalTimestamp: m.OriginalTimestamp,
+		Provider:          m.Provider,
 		Location: storage.Location{
 			Latitude:  m.Latitude,
 			Longitude: m.Longitude,

@@ -11,6 +11,7 @@ import (
 )
 
 func databaseTelemetryHandler(w http.ResponseWriter, r *http.Request) {
+	log.Trace.Printf("url: %s %s %d %v\n", r.Method, r.RequestURI, r.ContentLength, r.Header)
 
 	type request struct {
 		format string
@@ -22,8 +23,6 @@ func databaseTelemetryHandler(w http.ResponseWriter, r *http.Request) {
 
 	type response struct {
 	}
-
-	log.Trace.Printf("url: %s %s %d\n", r.Method, r.RequestURI, r.ContentLength)
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {

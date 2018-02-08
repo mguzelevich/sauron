@@ -19,7 +19,7 @@ type accountsResponse struct {
 }
 
 func databaseAccountsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Trace.Printf("url: %s %s %d\n", r.Method, r.RequestURI, r.ContentLength)
+	log.Trace.Printf("url: %s %s %d %v\n", r.Method, r.RequestURI, r.ContentLength, r.Header)
 
 	w.Header().Set("Content-Type", "application/json")
 

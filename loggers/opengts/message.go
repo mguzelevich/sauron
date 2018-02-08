@@ -10,7 +10,9 @@ import (
 )
 
 type udpMessage struct {
-	Timestamp *time.Time // time=%TIME
+	Timestamp *time.Time
+
+	OriginalTimestamp *time.Time // time=%TIME
 
 	Latitude  float64
 	Longitude float64
@@ -39,7 +41,7 @@ func (m *udpMessage) ParseRaw(p string) error {
 		return err
 	}
 	// t.Provider = values.Get("prov")
-	m.Timestamp = rmc.Timestamp
+	m.OriginalTimestamp = rmc.Timestamp
 
 	lat, lon := rmc.Location.Float64()
 
@@ -57,7 +59,8 @@ func (m *udpMessage) ParseRaw(p string) error {
 
 func (m udpMessage) Telemetry() *storage.Telemetry {
 	t := &storage.Telemetry{
-		Timestamp: m.Timestamp,
+		Timestamp:         m.Timestamp,
+		OriginalTimestamp: m.OriginalTimestamp,
 		// Provider:  m.Provider,
 		Location: storage.Location{
 			Latitude:  m.Latitude,

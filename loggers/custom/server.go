@@ -15,6 +15,10 @@ import (
 	"github.com/mguzelevich/sauron/loggers"
 )
 
+const (
+	ContentTypeUrlEncoder = "application/x-www-form-urlencoded"
+)
+
 type Server struct {
 	addr     string
 	server   *http.Server
@@ -27,6 +31,13 @@ func (s Server) DoneChan() chan bool {
 	return s.doneChan
 }
 
+func (s *Server) router() *mux.Router {
+	r := mux.NewRouter()
+	r.HandleFunc("/", s.handler).Methods("GET")
+	r.HandleFunc("/log", s.logLocationHandler).Methods("POST")
+	return r
+}
+
 func (s *Server) ListenAndServe(shutdownChan chan bool) {
 	s.server = &http.Server{
 		Addr:           s.addr,
@@ -35,10 +46,7 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", s.handler).Methods("GET")
-	r.HandleFunc("/log", s.logLocationHandler).Methods("POST")
-	s.server.Handler = r
+	s.server.Handler = s.router()
 
 	go s.server.ListenAndServe()
 	log.Info.Printf("custom url logger server started [%s]\n", s.addr)
@@ -86,7 +94,10 @@ func (s *Server) logLocationHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func parse(raw string) (loggers.Message, error) {
-	msg := message{}
+	ts := time.Now().UTC()
+	msg := message{
+		Timestamp: &ts,
+	}
 	if err := msg.ParseRaw(raw); err != nil {
 		return nil, err
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mguzelevich/go.log"
-	"github.com/mguzelevich/sauron/storage"
+	// "github.com/mguzelevich/sauron/storage"
 )
 
 type dummyResponse struct {

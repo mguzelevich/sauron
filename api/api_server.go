@@ -11,6 +11,16 @@ import (
 	"github.com/mguzelevich/go.log"
 )
 
+const (
+	HeaderAccept = "Accept"
+
+	ContentTypeUrlEncoder = "application/x-www-form-urlencoded"
+
+	HeaderAcceptJson    = "application/json"
+	HeaderAcceptGpx     = "application/gpx+xml"
+	HeaderAcceptGeoJson = "application/vnd.geo+json"
+)
+
 type Server struct {
 	addr     string
 	server   *http.Server
@@ -21,9 +31,9 @@ func (s Server) DoneChan() chan bool {
 	return s.doneChan
 }
 
-func router() *mux.Router {
+func (s *Server) router() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/", handler).Methods("GET")
+	r.HandleFunc("/", s.handler).Methods("GET")
 	r.HandleFunc("/database/accounts", databaseAccountsHandler).Methods("POST")
 	r.HandleFunc("/database/dump", databaseDumpHandler).Methods("POST")
 	r.HandleFunc("/database/telemetry", databaseTelemetryHandler).Methods("POST")
@@ -39,7 +49,7 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	s.server.Handler = router()
+	s.server.Handler = s.router()
 
 	go s.server.ListenAndServe()
 	log.Info.Printf("api server started [%s]\n", s.addr)
@@ -50,7 +60,7 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 	close(s.doneChan)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 	log.Trace.Printf("url: %s %s %d %v\n", r.Method, r.RequestURI, r.ContentLength, r.Header)
 	w.Header().Set("Content-Type", "application/json")
 
@@ -69,4 +79,8 @@ func New(addr string) *Server {
 		doneChan: make(chan bool),
 	}
 	return server
+}
+
+func checkAccept(r *http.Request, format string) bool {
+	return r.Header.Get(HeaderAccept) == format
 }

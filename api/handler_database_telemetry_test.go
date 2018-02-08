@@ -7,7 +7,8 @@ import (
 )
 
 func TestDatabaseTelemetry(t *testing.T) {
-	r := router()
+	s := &Server{}
+	r := s.router()
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 	apiUrl := "/database/telemetry"

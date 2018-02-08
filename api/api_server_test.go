@@ -9,7 +9,8 @@ import (
 // https://medium.com/agrea-technogies/basic-testing-patterns-in-go-d8501e360197
 
 func TestRouter(t *testing.T) {
-	r := router()
+	s := &Server{}
+	r := s.router()
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

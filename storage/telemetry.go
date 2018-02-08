@@ -7,8 +7,9 @@ import (
 )
 
 type Telemetry struct {
-	Timestamp *time.Time `json:"time,omitempty"` // time=%TIME
-	Provider  string     `json:"prov,omitempty"` // prov=%PROV
+	Timestamp         *time.Time `json:"-"`              // time=%TIME
+	OriginalTimestamp *time.Time `json:"time,omitempty"` // time=%TIME
+	Provider          string     `json:"prov,omitempty"` // prov=%PROV
 
 	Location Location `json:"location"`
 	Device   struct {
@@ -37,6 +38,9 @@ func (t Telemetry) Type() string {
 }
 
 func (t Telemetry) Pk() string {
+	if t.Timestamp == nil {
+		t.Timestamp = t.OriginalTimestamp
+	}
 	buff, _ := json.Marshal(t.Timestamp)
 	//timestamp := time.Now().UTC().Format(time.RFC3339)
 	timestamp := string(buff)

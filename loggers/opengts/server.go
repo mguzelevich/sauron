@@ -66,7 +66,10 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 }
 
 func parse(raw string) (loggers.Message, error) {
-	msg := udpMessage{}
+	ts := time.Now().UTC()
+	msg := udpMessage{
+		Timestamp: &ts,
+	}
 	if err := msg.ParseRaw(raw); err != nil {
 		return nil, err
 	}
