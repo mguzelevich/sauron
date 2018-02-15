@@ -50,7 +50,32 @@ func init() {
 	flag.BoolVar(&memory, "memory", false, "in-memory mode")
 }
 
-func shutdown(shutdownChan chan bool, services ...shutdownable) {
+func checkChansClose(chans []chan bool, timeout time.Duration) bool {
+	allDone := true
+	idx := 0
+	for {
+		if idx == len(chans) {
+			idx = 0
+			if allDone {
+				return true
+			}
+			allDone = true
+		}
+		deadline := time.After(timeout * time.Second)
+		select {
+		case <-chans[idx]:
+			chans[idx] = nil
+		case <-deadline:
+			return false
+		default:
+			allDone = allDone
+		}
+		allDone = allDone && chans[idx] == nil
+		idx++
+	}
+}
+
+func shutdown(shutdownChan chan bool, services ...shutdownable) bool {
 	close(shutdownChan)
 
 	chans := []chan bool{}
@@ -58,32 +83,7 @@ func shutdown(shutdownChan chan bool, services ...shutdownable) {
 		chans = append(chans, s.DoneChan())
 	}
 
-	for {
-		timeout := time.After(10 * time.Second)
-		select {
-		case <-chans[0]:
-			chans[0] = nil
-		case <-chans[1]:
-			chans[1] = nil
-		case <-chans[2]:
-			chans[2] = nil
-		case <-chans[3]:
-			chans[3] = nil
-		case <-chans[4]:
-			chans[4] = nil
-		case <-timeout:
-			log.Warning.Printf("service shutdowned by timer")
-			return
-		default:
-			allDone := true
-			for _, ch := range chans {
-				allDone = allDone && ch == nil
-			}
-			if allDone {
-				return
-			}
-		}
-	}
+	return checkChansClose(chans, 5)
 }
 
 func main() {
@@ -137,5 +137,9 @@ func main() {
 	signal.Notify(stopChan, os.Interrupt)
 	<-stopChan
 
-	shutdown(shutdownChan, services...)
+	if ok := shutdown(shutdownChan, services...); ok {
+		log.Warning.Printf("service shutdowned")
+	} else {
+		log.Warning.Printf("service shutdowned by timer")
+	}
 }

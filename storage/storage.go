@@ -29,24 +29,28 @@ func (s *Storage) shutdownLoop(shutdownChan chan bool) {
 	close(s.engineShutdownChan)
 
 	done := s.engine.DoneChan()
-
-	func() {
+	f := func() bool {
 		for {
 			timeout := time.After(10 * time.Second)
 			select {
 			case <-done:
 				done = nil
 			case <-timeout:
-				log.Warning.Printf("storage shutdowned by timer")
-				return
+				return false
 			default:
 				if done == nil {
-					return
+					return true
 				}
 			}
 		}
-	}()
-	log.Info.Printf("storage gracefully stopped")
+	}
+
+	if ok := f(); ok {
+		log.Info.Printf("storage gracefully stopped")
+	} else {
+		log.Warning.Printf("storage shutdowned by timer")
+	}
+
 	close(s.doneChan)
 }
 

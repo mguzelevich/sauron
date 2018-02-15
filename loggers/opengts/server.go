@@ -62,7 +62,7 @@ func (s *Server) ListenAndServe(shutdownChan chan bool) {
 	// server.Shutdown(ctx)
 	close(closeChan)
 	log.Info.Printf("opengts udp logging server gracefully stopped\n")
-	s.doneChan <- true
+	close(s.doneChan)
 }
 
 func parse(raw string) (loggers.Message, error) {
