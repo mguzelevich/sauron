@@ -6,8 +6,9 @@ jobs:
   build:
     docker:
       # specify the version
-      - image: circleci/golang:1.9
-      
+      - image: circleci/golang
+      - image: circleci/node:4.8.2
+
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
@@ -22,15 +23,15 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
-      - run:
-          name: build static
-          command: |
-            echo build static ui
-            cd ui/frontend
-            npm install
-            npm run build
-            cd ..
-            rice embed-go
+      # - run:
+      #     name: build static
+      #     command: |
+      #       echo build static ui
+      #       cd ui/frontend
+      #       npm install
+      #       npm run build
+      #       cd ..
+      #       rice embed-go
 
       - run: go get -v -t -d ./...
       - run: go test -v ./...
