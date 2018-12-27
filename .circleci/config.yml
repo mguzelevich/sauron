@@ -23,14 +23,14 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run:
-        name: build static
-        command: |
-          echo build static ui
-          cd ui/frontend
-          npm install
-          npm run build
-          cd ..
-          rice embed-go
+          name: build static
+          command: |
+            echo build static ui
+            cd ui/frontend
+            npm install
+            npm run build
+            cd ..
+            rice embed-go
 
       - run: go get -v -t -d ./...
       - run: go test -v ./...
