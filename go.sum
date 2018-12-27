@@ -1,0 +1,14 @@
+github.com/GeertJohan/go.rice v0.0.0-20170420135705-c02ca9a983da h1:UVU3a9pRUyLdnBtn60WjRl0s4SEyJc2ChCY56OAR6wI=
+github.com/GeertJohan/go.rice v0.0.0-20170420135705-c02ca9a983da/go.mod h1:DgrzXonpdQbfN3uYaGz1EG4Sbhyum/MMIn6Cphlh2bw=
+github.com/boltdb/bolt v1.3.1 h1:JQmyP4ZBrce+ZQu0dY660FMfatumYDLun9hBCUVIkF4=
+github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
+github.com/daaku/go.zipexe v0.0.0-20150329023125-a5fe2436ffcb h1:tUf55Po0vzOendQ7NWytcdK0VuzQmfAgvGBUOQvN0WA=
+github.com/daaku/go.zipexe v0.0.0-20150329023125-a5fe2436ffcb/go.mod h1:U0vRfAucUOohvdCxt5MWLF+TePIL0xbCkbKIiV8TQCE=
+github.com/gorilla/mux v1.6.2 h1:Pgr17XVTNXAk3q/r4CpKzC5xBM/qW1uVLV+IhRZpIIk=
+github.com/gorilla/mux v1.6.2/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
+github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1 h1:PJPDf8OUfOK1bb/NeTKd4f1QXZItOX389VN3B6qC8ro=
+github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1/go.mod h1:1NbS8ALrpOvjt0rHPNLyCIeMtbizbir8U//inJ+zuB8=
+github.com/mguzelevich/go.log v0.0.0-20180206113500-e48db90effd9 h1:7wDn6iJVuy/9QEjWNjjsgpT+UOUqFtrDo/L8xHQEx9U=
+github.com/mguzelevich/go.log v0.0.0-20180206113500-e48db90effd9/go.mod h1:oT0dj/eHjRPCetLFUKnLXCI5qVBpdSOSzs8uS5qSJrk=
+github.com/mguzelevich/go.nmea v0.0.0-20180206113537-266aa32324bc h1:MgrlJWNCqfmSsvg12xuELXIA+OQQuJGz0kaFxpYvxy4=
+github.com/mguzelevich/go.nmea v0.0.0-20180206113537-266aa32324bc/go.mod h1:mm5s3cFe22WRukM+3gVo+/wk3NOi5+HviRjphP0zApk=
