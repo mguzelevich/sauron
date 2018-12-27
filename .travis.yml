@@ -4,8 +4,8 @@ go:
   - 1.9
   - tip
 
-install:
-  - go get -u github.com/jteeuwen/go-bindata/...
+# install:
+#  - go get -u github.com/jteeuwen/go-bindata/...
 #  - go get github.com/apcera/nats
 #  - go get github.com/aws/aws-sdk-go/aws
 #  - go get github.com/aws/aws-sdk-go/service/sqs

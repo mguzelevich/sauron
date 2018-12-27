@@ -22,7 +22,8 @@ jobs:
       - checkout
 
       # specify any bash command here prefixed with `run: `
-      - run: 
+      - run:
+        name: build static
         command: |
           echo build static ui
           cd ui/frontend
