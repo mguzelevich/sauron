@@ -31,30 +31,58 @@
     "pieChart": "Pie Chart",
     "verticalBarChart": "Vertical Bar Chart"
   },
+  "collapse": {
+    "accordion": "Acordeón",
+    "buttons": "Botones"
+  },
   "dashboard": {
     "elements": "Elementos",
+    "success": "ÉXITO",
+    "successMessage": "Ha leído correctamente este mensaje de alerta importante.",
     "teamMembers": "Miembros del Equipo",
     "versions": "Versiones"
   },
-  "extra": {
+  "notificationsPage": {
     "alerts": {
       "title": "Alerts",
       "success": "ÉXITO",
-      "successMessage":
-        "Ha leído correctamente este mensaje de alerta importante.",
+      "successMessage": "Ha leído correctamente este mensaje de alerta importante.",
       "info": "INFO",
-      "infoMessage":
-        "Esta alerta necesita tu atención, pero no es muy importante.",
+      "infoMessage": "Esta alerta necesita tu atención, pero no es muy importante.",
       "warning": "ADVERTENCIA",
       "warningMessage": "Mejor compruébalo, esto no pinta bien.",
       "danger": "PELIGRO",
       "dangerMessage": "Cambiar algunas cosas e enviarlo de nuevo."
     },
+    "popovers": {
+      "title": "Tooltips & Popovers",
+      "popoverTitleLabel": "Title de Popover",
+      "popoverTextLabel": "Texto de Popover",
+      "popoverIconLabel": "Icono de Popover (fontawesome)",
+      "showPopover": "Mostrar Popover",
+      "topTooltip": "tope tooltip",
+      "rightTooltip": "derecha tooltip",
+      "leftTooltip": "izquierda",
+      "bottomTooltip": "fondo"
+    },
+    "Toasts": {
+      "title": "tostadas",
+      "textLabel": "Texto",
+      "durationLabel": "Duración (milisegundos)",
+      "iconLabel": "Icono (fontawesome)",
+      "fullWidthLabel": "Ancho total",
+      "launchToast": "Lanzar tostadas"
+    }
+  },
+  "extra": {
+    "tabs": {
+      "title": "Tabs",
+      "maps": "Mapas",
+      "overview": "Visión de conjunto",
+      "setupProfile": "Perfil de Configuración"
+    },
     "chat": "Chat",
-    "chart": "Grafico",
-    "overview": "Visión de conjunto",
-    "profileCard": "Tarjeta de Perfil",
-    "setupProfile": "Perfil de Configuración"
+    "profileCard": "Tarjeta de Perfil"
   },
   "forms": {
     "controls": {
@@ -77,6 +105,9 @@
       "textArea": "Text Area",
       "title": "Inputs",
       "upload": "SUBIR"
+    },
+    "mediumEditor": {
+      "title": "Medium Editor"
     },
     "selects": {
       "country": "País Select",
@@ -111,23 +142,29 @@
     "title": "Iconos"
   },
   "language": {
-    "english": "Ingles",
-    "spanish": "Español"
+    "brazilian_portuguese": "Português",
+    "english": "English",
+    "spanish": "Spanish"
   },
   "menu": {
     "auth": "Autenticación",
     "buttons": "Botones",
     "charts": "Gráficos",
+    "collapse": "Colapso",
+    "colorPickers": "Selector de color",
     "dashboard": "Dashboard",
     "extra": "Extra",
     "formElements": "Elementos de un Formulario",
     "forms": "Formularios",
     "formWizards": "Asistente para Formularios",
+    "mediumEditor": "Medium Editor",
     "grid": "Grid",
     "icons": "Iconos",
+    "cards": "Cards",
     "login": "Iniciar sesión",
     "maps": "Mapas",
     "modals": "Modals",
+    "notifications": "Notificaciones",
     "progressBars": "Barras de Progreso",
     "signUp": "Registrar",
     "statistics": "Estadisticas",
@@ -155,6 +192,28 @@
     "staticTitle": "Modal Estático",
     "title": "Modals"
   },
+  "fileUpload": {
+    "advancedMediaGallery": "Avanzado, Galería de medios",
+    "advancedUploadList": "Avanzado, lista de carga",
+    "mediaGallery": "Galería media",
+    "uploadList": "Lista de carga",
+    "single": "Soltero",
+    "dragNdropFiles": "Arrastrar y soltar archivos",
+    "uploadedOn": "Subido en",
+    "fileDeleted": "El archivo fue eliminado exitosamente",
+    "undo": "Deshacer",
+    "preview": "Avance",
+    "delete": "Borrar",
+    "deleteFile": "Borrar archivo",
+    "uploadFile": "Subir archivo",
+    "uploadMedia": "Cargar medios",
+    "addAttachment": "Añadir un adjunto",
+    "modalTitle": "Validación de archivo",
+    "modalText": "El tipo de archivo es incorrecto!"
+  },
+  "navbar": {
+    "messageUs": "Envíenos sus preguntas o comentarios a"
+  },
   "notifications": {
     "all": "Ver todos los notificaciones",
     "sentMessage": "{name} te ha mandado un mensaje",
@@ -180,6 +239,9 @@
       "email": "Email",
       "name": "Nombre",
       "score": "Puntuación"
+    },
+    "dataTable": {
+      "noDataAvailable": "No Data Available"
     }
   },
   "user": {

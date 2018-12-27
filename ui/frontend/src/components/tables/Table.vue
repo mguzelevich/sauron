@@ -2,7 +2,7 @@
   <div>
     <div class="row">
       <div class="col-xs-12 col-md-12">
-        <widget :headerText="$t('tables.basic')">
+        <vuestic-widget :headerText="$t('tables.basic')">
           <div class="table-responsive">
             <table class="table table-striped first-td-padding">
               <thead>
@@ -74,13 +74,13 @@
               </tbody>
             </table>
           </div>
-        </widget>
+        </vuestic-widget>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
-        <widget :headerText="$t('tables.styled')">
+        <vuestic-widget :headerText="$t('tables.styled')">
           <div class="table-responsive">
             <table class="table table-striped table-sm color-icon-label-table">
               <thead>
@@ -173,20 +173,31 @@
               </tbody>
             </table>
           </div>
-        </widget>
+        </vuestic-widget>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
-        <widget :headerText="$t('tables.advanced')">
-          <data-table :apiUrl="apiUrl"
-                      :tableFields="tableFields"
-                      :itemsPerPage="itemsPerPage"
-                      :sortFunctions="sortFunctions"
-                      :apiMode="apiMode"
-                      :paginationPath="paginationPath"></data-table>
-        </widget>
+        <vuestic-widget :headerText="$t('tables.advanced')">
+          <vuestic-data-table
+            :apiUrl="apiUrl"
+            :tableFields="tableFields"
+            :itemsPerPage="itemsPerPage"
+            :defaultPerPage="defaultTablePerPage"
+            :sortFunctions="sortFunctions"
+            :apiMode="apiMode"
+            :paginationPath="paginationPath"
+            :queryParams="queryParams"
+          >
+            <spring-spinner
+              slot="loading"
+              :animation-duration="2500"
+              :size="70"
+              color="#4ae387"
+            />
+          </vuestic-data-table>
+        </vuestic-widget>
       </div>
     </div>
 
@@ -194,32 +205,33 @@
 </template>
 
 <script>
-  import Widget from '../vuestic-components/vuestic-widget/VuesticWidget'
-  import DataTable from '../vuestic-components/vuestic-datatable/VuesticDataTable'
-  import BadgeColumn from './BadgeColumn.vue'
-  import Vue from 'vue'
-  import FieldsDef from '../vuestic-components/vuestic-datatable/data/fields-definition'
-  import ItemsPerPageDef from '../vuestic-components/vuestic-datatable/data/items-per-page-definition'
+import Vue from 'vue'
+import BadgeColumn from './BadgeColumn.vue'
+import FieldsDef from 'vuestic-components/vuestic-datatable/data/fields-definition'
+import ItemsPerPageDef from 'vuestic-components/vuestic-datatable/data/items-per-page-definition'
+import QueryParams from 'vuestic-components/vuestic-datatable/data/query-params'
+import { SpringSpinner } from 'epic-spinners'
 
-  Vue.component('badge-column', BadgeColumn)
+Vue.component('badge-column', BadgeColumn)
 
-  export default {
-    components: {
-      DataTable,
-      Widget
-    },
-    name: 'Table',
-    data () {
-      return {
-        apiUrl: 'https://vuetable.ratiw.net/api/users',
-        apiMode: true,
-        tableFields: FieldsDef.tableFields,
-        itemsPerPage: ItemsPerPageDef.itemsPerPage,
-        sortFunctions: FieldsDef.sortFunctions,
-        paginationPath: ''
-      }
+export default {
+  name: 'Table',
+  components: {
+    SpringSpinner
+  },
+  data () {
+    return {
+      apiUrl: 'https://vuetable.ratiw.net/api/users',
+      apiMode: true,
+      tableFields: FieldsDef.tableFields,
+      itemsPerPage: ItemsPerPageDef.itemsPerPage,
+      sortFunctions: FieldsDef.sortFunctions,
+      paginationPath: '',
+      defaultTablePerPage: 6,
+      queryParams: QueryParams
     }
   }
+}
 </script>
 
 <style lang="scss">
