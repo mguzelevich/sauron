@@ -22,6 +22,11 @@ $ cd $ROOT/ui/
 $ rice embed-go
 ```
 
+```
+$ rm -rf sauron; go build github.com/mguzelevich/sauron/cmd/sauron
+
+```
+
 ## ui development
 
 ```

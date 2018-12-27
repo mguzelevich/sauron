@@ -1,38 +1,14 @@
 <template>
   <div class="extra">
-    <div class="row">
-      <div class="col-md-12">
-        <vuestic-widget :headerText="'extra.alerts.title' | translate">
-          <vuestic-alert type="success" :withCloseBtn="true">
-            <span class="badge badge-pill badge-success">{{'extra.alerts.success' | translate}}</span>
-          {{'extra.alerts.successMessage' | translate}}
-            <i class="fa fa-close alert-close"></i>
-          </vuestic-alert>
-          <vuestic-alert type="info" :withCloseBtn="true">
-            <span class="badge badge-pill badge-info">{{'extra.alerts.info' | translate}}</span>
-          {{'extra.alerts.infoMessage' | translate}}
-          </vuestic-alert>
-          <vuestic-alert type="warning" :withCloseBtn="true">
-            <span class="badge badge-pill badge-warning">{{'extra.alerts.warning' | translate}}</span>
-          {{'extra.alerts.warningMessage' | translate}}
-          </vuestic-alert>
-          <vuestic-alert type="danger" :withCloseBtn="true">
-            <span class="badge badge-pill badge-danger">{{'extra.alerts.danger' | translate}}</span>
-          {{'extra.alerts.dangerMessage' | translate}}
-          </vuestic-alert>
-        </vuestic-widget>
-      </div>
-    </div>
-
-    <vuestic-widget class="no-v-padding">
-      <vuestic-tabs class="tabs" :names="[$t('extra.chart'), $t('extra.setupProfile'), $t('extra.overview')]">
-        <div slot="Overview" class="d-flex justify-content-center">
+    <vuestic-widget :headerText="'extra.tabs.title' | translate" class="no-v-padding">
+      <vuestic-tabs class="tabs" :names="[$t('extra.tabs.maps'), $t('extra.tabs.setupProfile'), $t('extra.tabs.overview')]">
+        <div :slot="'extra.tabs.overview' | translate" class="d-flex justify-content-center">
           <overview-tab></overview-tab>
         </div>
-        <div slot="Chart" class="d-flex justify-content-center">
-          <vuestic-chart v-bind:data="chartData" type="line"></vuestic-chart>
+        <div :slot="'extra.tabs.maps' | translate" class="maps-tab">
+          <leaflet-map></leaflet-map>
         </div>
-        <div slot="Setup Profile" class="d-flex justify-content-center">
+        <div :slot="'extra.tabs.setupProfile' | translate" class="d-flex justify-content-center">
           <setup-profile-tab wizardType="simple"></setup-profile-tab>
         </div>
       </vuestic-tabs>
@@ -41,7 +17,7 @@
     <div class="row">
       <div class="col-md-4 d-flex">
         <vuestic-widget :headerText="$t('extra.profileCard')" class="profile-card-widget">
-          <vuestic-profile-card :name="'Veronique Lee'" :location="'Malaga, Spain'" photoSource="http://i.imgur.com/NLrdqsk.png"
+          <vuestic-profile-card :name="'Veronique Lee'" :location="'Malaga, Spain'" photoSource="https://i.imgur.com/NLrdqsk.png"
                                 :social="{twitter: 'twitter.com', facebook: 'facebook.com',
                                   instagram: 'instagram.com'}">
           </vuestic-profile-card>
@@ -62,7 +38,7 @@
       </div>
       <div class="col-md-6 d-flex">
         <vuestic-widget class="business-posts">
-          <vuestic-social-news :news="news" :url="'http://instagram.com/smartapant'"></vuestic-social-news>
+          <vuestic-social-news :news="news" :url="'https://instagram.com/smartapant'"></vuestic-social-news>
         </vuestic-widget>
       </div>
     </div>
@@ -70,120 +46,112 @@
 </template>
 
 <script>
-  import VuesticTabs from '../../components/vuestic-components/vuestic-tabs/VuesticTabs.vue'
-  import VuesticProfileCard from '../../components/vuestic-components/vuestic-profile-card/VuesticProfileCard.vue'
-  import VuesticAlert from '../../components/vuestic-components/vuestic-alert/VuesticAlert'
-  import VuesticChat from '../../components/vuestic-components/vuestic-chat/VuesticChat'
-  import VuesticFeed from '../vuestic-components/vuestic-feed/VuesticFeed.vue'
-  import VuesticSocialNews from '../vuestic-components/vuestic-social-news/VuesticSocialNews.vue'
-  import OverviewTab from '../dashboard/features-tab/FeaturesTab.vue'
-  import SetupProfileTab from '../dashboard/setup-profile-tab/SetupProfileTab.vue'
-  import chartData from '../statistics/charts/LineChartData'
+import OverviewTab from 'components/dashboard/features-tab/FeaturesTab.vue'
+import SetupProfileTab from 'components/dashboard/setup-profile-tab/SetupProfileTab.vue'
+import LeafletMap from 'components/maps/leaflet-maps/LeafletMap.vue'
 
-  export default {
-    name: 'extra',
-    components: {
-      SetupProfileTab,
-      OverviewTab,
-      VuesticSocialNews,
-      VuesticFeed,
-      VuesticTabs,
-      VuesticProfileCard,
-      VuesticAlert,
-      VuesticChat
-    },
-    data () {
-      return {
-        chatMessages: [
-          {
-            text: 'Hello! So glad you liked my work. Do you want me to shoot you?',
-            yours: false
-          },
-          {
-            text: 'Yeah, that would be cool. Maybe this Sunday at 3 pm?',
-            yours: true
-          },
-          {
-            text: 'Sounds great! See you later!',
-            yours: false
-          },
-          {
-            text: 'Should I bring a lightbox with me?',
-            yours: true
-          },
-          {
-            text: 'No, thanks. There is no need. Can we set up a meeting earlier?',
-            yours: false
-          },
-          {
-            text: 'I\'m working on Vuestic, so let\'s meet at 3pm. Thanks!',
-            yours: true
-          }
-        ],
-        posts: [
-          {
-            name: 'Irina Myatelskaya',
-            text: 'joined the network',
-            photoURL: 'http://i.imgur.com/VuTDC8u.png'
-          },
-          {
-            name: 'Andrei Hrabouski',
-            text: 'has just started a live video',
-            photoURL: 'http://i.imgur.com/W3mGrmW.png'
-          },
-          {
-            name: 'Evan You',
-            text: 'joined the network',
-            photoURL: 'http://i.imgur.com/D7DOGBH.jpg'
-          }
-        ],
-        news: [
-          {
-            photoURL: 'http://i.imgur.com/PiTDDcA.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/M6GugaM.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/vEy3fRU.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/Xrywphx.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/dqVtQGY.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/qP7rTCy.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/6YLsM43.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/9PAOx55.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/mVpc04D.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/WdbTSLn.png'
-          },
-          {
-            photoURL: 'http://i.imgur.com/ZXRIHfk.png'
-          }
-        ],
-        chartData: chartData
-      }
+export default {
+  name: 'extra',
+  components: {
+    LeafletMap,
+    SetupProfileTab,
+    OverviewTab
+  },
+  data () {
+    return {
+      chatMessages: [
+        {
+          text: 'Hello! So glad you liked my work. Do you want me to shoot you?',
+          yours: false
+        },
+        {
+          text: 'Yeah, that would be cool. Maybe this Sunday at 3 pm?',
+          yours: true
+        },
+        {
+          text: 'Sounds great! See you later!',
+          yours: false
+        },
+        {
+          text: 'Should I bring a lightbox with me?',
+          yours: true
+        },
+        {
+          text: 'No, thanks. There is no need. Can we set up a meeting earlier?',
+          yours: false
+        },
+        {
+          text: 'I\'m working on Vuestic, so let\'s meet at 3pm. Thanks!',
+          yours: true
+        }
+      ],
+      posts: [
+        {
+          name: 'Irina Myatelskaya',
+          text: 'joined the network',
+          photoURL: 'https://i.imgur.com/VuTDC8u.png'
+        },
+        {
+          name: 'Andrei Hrabouski',
+          text: 'has just started a live video',
+          photoURL: 'https://i.imgur.com/W3mGrmW.png'
+        },
+        {
+          name: 'Evan You',
+          text: 'joined the network',
+          photoURL: 'https://i.imgur.com/D7DOGBH.jpg'
+        }
+      ],
+      news: [
+        {
+          photoURL: 'https://i.imgur.com/PiTDDcA.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/M6GugaM.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/vEy3fRU.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/Xrywphx.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/dqVtQGY.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/qP7rTCy.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/6YLsM43.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/9PAOx55.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/mVpc04D.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/WdbTSLn.png'
+        },
+        {
+          photoURL: 'https://i.imgur.com/ZXRIHfk.png'
+        }
+      ]
     }
   }
+}
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .tabs {
     .overview-tab {
       .explore-row {
         display: none !important;
       }
+    }
+
+    .maps-tab {
+      height: 500px;
     }
   }
 
